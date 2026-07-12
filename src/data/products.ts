@@ -1,0 +1,531 @@
+export interface Product {
+  id: string;
+  slug: string;
+  name: string;
+  nameHi: string;
+  description: string;
+  price: number;
+  mrp: number;
+  image: string;
+  images: string[];
+  category: string;
+  categorySlug: string;
+  tags: string[];
+  badges: string[];
+  rating: number;
+  reviewCount: number;
+  inStock: boolean;
+  isFeatured: boolean;
+  material?: string;
+  weight?: string;
+  pujaGuide?: string;
+  ingredients?: string[];
+}
+
+export interface Category {
+  id: string;
+  slug: string;
+  name: string;
+  nameHi: string;
+  nameSanskrit: string;
+  description: string;
+  image: string;
+  productCount: number;
+}
+
+export interface Occasion {
+  id: string;
+  slug: string;
+  name: string;
+  nameHi: string;
+  description: string;
+  image: string;
+  date: string;
+  products: string[];
+}
+
+export interface Review {
+  id: string;
+  userName: string;
+  city: string;
+  rating: number;
+  comment: string;
+  date: string;
+  verified: boolean;
+  image?: string;
+}
+
+export interface CartItem {
+  product: Product;
+  quantity: number;
+}
+
+export interface LiveDarshan {
+  id: string;
+  title: string;
+  temple: string;
+  deity: string;
+  location: string;
+  isLive: boolean;
+  scheduledAt: string;
+  viewerCount: number;
+  thumbnailUrl: string;
+  streamUrl?: string;
+}
+
+export const categories: Category[] = [
+  {
+    id: "cat-1",
+    slug: "puja-essentials",
+    name: "Puja Essentials",
+    nameHi: "पूजा सामग्री",
+    nameSanskrit: "पूजा द्रव्य",
+    description: "Everything you need for your daily worship — incense, camphor, wicks, and sacred oils.",
+    image: "/images/categories/puja-essentials.jpg",
+    productCount: 48,
+  },
+  {
+    id: "cat-2",
+    slug: "idols-shrines",
+    name: "Idols & Shrines",
+    nameHi: "मूर्तियाँ और मंदिर",
+    nameSanskrit: "मूर्ति एवं मन्दिर",
+    description: "Handcrafted deity statues, wooden mandirs, and sacred altars for your home.",
+    image: "/images/categories/idols-shrines.jpg",
+    productCount: 35,
+  },
+  {
+    id: "cat-3",
+    slug: "lamps-diyas",
+    name: "Lamps & Diyas",
+    nameHi: "दीपक और दीये",
+    nameSanskrit: "दीप एवं ज्योति",
+    description: "Traditional brass diyas, akhand jyots, and decorative floating lamps.",
+    image: "/images/categories/lamps-diyas.jpg",
+    productCount: 28,
+  },
+  {
+    id: "cat-4",
+    slug: "spiritual-wear",
+    name: "Spiritual Wear",
+    nameHi: "आध्यात्मिक पहनावा",
+    nameSanskrit: "आध्यात्मिक वस्त्र",
+    description: "Sacred malas, rudraksha beads, gemstone jewelry, and prayer shawls.",
+    image: "/images/categories/spiritual-wear.jpg",
+    productCount: 42,
+  },
+  {
+    id: "cat-5",
+    slug: "decor-offerings",
+    name: "Decor & Offerings",
+    nameHi: "सजावट और अर्पण",
+    nameSanskrit: "अलंकार एवं उपहार",
+    description: "Torans, rangoli stencils, copper kalash, and festive home decor.",
+    image: "/images/categories/decor-offerings.jpg",
+    productCount: 31,
+  },
+];
+
+export const products: Product[] = [
+  {
+    id: "prod-1",
+    slug: "premium-agarbatti-collection",
+    name: "Premium Agarbatti Collection",
+    nameHi: "प्रीमियम अगरबत्ती संग्रह",
+    description: "Hand-rolled natural incense sticks made with pure sandalwood, jasmine, and rose extracts. Each stick burns for 45 minutes releasing a divine fragrance that purifies your puja space.",
+    price: 349,
+    mrp: 499,
+    image: "/images/products/agarbatti.jpg",
+    images: ["/images/products/agarbatti.jpg", "/images/products/agarbatti-2.jpg"],
+    category: "Puja Essentials",
+    categorySlug: "puja-essentials",
+    tags: ["incense", "agarbatti", "sandalwood"],
+    badges: ["Pure", "Handmade"],
+    rating: 4.8,
+    reviewCount: 234,
+    inStock: true,
+    isFeatured: true,
+    material: "Natural herbs & essential oils",
+    weight: "250g",
+    pujaGuide: "Light the tip of the incense stick and gently blow out the flame. Place in a holder and let the fragrance fill your puja room.",
+    ingredients: ["Sandalwood powder", "Jasmine extract", "Rose petals", "Bamboo stick", "Natural binding gum"],
+  },
+  {
+    id: "prod-2",
+    slug: "brass-ganesh-murti",
+    name: "Brass Ganesh Murti",
+    nameHi: "पीतल गणेश मूर्ति",
+    description: "Exquisitely handcrafted Lord Ganesh idol in pure brass. Each piece is individually cast and polished to a golden sheen. Perfect for home mandir or office desk.",
+    price: 2499,
+    mrp: 3499,
+    image: "/images/products/ganesh-murti.jpg",
+    images: ["/images/products/ganesh-murti.jpg"],
+    category: "Idols & Shrines",
+    categorySlug: "idols-shrines",
+    tags: ["ganesh", "brass", "idol", "murti"],
+    badges: ["Handmade", "Pure Brass"],
+    rating: 4.9,
+    reviewCount: 156,
+    inStock: true,
+    isFeatured: true,
+    material: "Pure Brass",
+    weight: "1.2 kg",
+    pujaGuide: "Place the murti facing east or north-east in your mandir. Perform daily abhishek with water or milk.",
+  },
+  {
+    id: "prod-3",
+    slug: "traditional-brass-diya-set",
+    name: "Traditional Brass Diya Set (5 pcs)",
+    nameHi: "पारंपरिक पीतल दीया सेट",
+    description: "Set of 5 handcrafted brass diyas with intricate floral motifs. Each diya holds ghee or oil for hours of continuous illumination during aarti and puja.",
+    price: 799,
+    mrp: 1199,
+    image: "/images/products/brass-diya.jpg",
+    images: ["/images/products/brass-diya.jpg"],
+    category: "Lamps & Diyas",
+    categorySlug: "lamps-diyas",
+    tags: ["diya", "brass", "lamp", "set"],
+    badges: ["Pure Brass", "Handmade"],
+    rating: 4.7,
+    reviewCount: 312,
+    inStock: true,
+    isFeatured: true,
+    material: "Pure Brass",
+    weight: "800g",
+    pujaGuide: "Fill the diya with ghee or sesame oil. Use a cotton wick. Light during aarti and keep the flame steady.",
+  },
+  {
+    id: "prod-4",
+    slug: "rudraksha-mala-108-beads",
+    name: "Rudraksha Mala (108 Beads)",
+    nameHi: "रुद्राक्ष माला (108 दाने)",
+    description: "Authentic 5-Mukhi Rudraksha mala with 108 beads strung on sacred red thread. Each bead is hand-selected from Nepal for clarity and natural texture.",
+    price: 1299,
+    mrp: 1899,
+    image: "/images/products/rudraksha-mala.jpg",
+    images: ["/images/products/rudraksha-mala.jpg"],
+    category: "Spiritual Wear",
+    categorySlug: "spiritual-wear",
+    tags: ["rudraksha", "mala", "prayer", "beads"],
+    badges: ["Organic", "Certified"],
+    rating: 4.9,
+    reviewCount: 189,
+    inStock: true,
+    isFeatured: true,
+    material: "Rudraksha seeds, Red silk thread",
+    weight: "60g",
+    pujaGuide: "Hold the mala in your right hand. Start from the bead next to the guru bead. Chant your mantra with each bead.",
+  },
+  {
+    id: "prod-5",
+    slug: "copper-kalash-with-coconut",
+    name: "Copper Kalash with Coconut Set",
+    nameHi: "तांबे का कलश नारियल सेट",
+    description: "Pure copper kalash set with brass trim, mango leaves holder, and coconut stand. Essential for Griha Pravesh, Navratri, and festive pujas.",
+    price: 1599,
+    mrp: 2299,
+    image: "/images/products/copper-kalash.jpg",
+    images: ["/images/products/copper-kalash.jpg"],
+    category: "Decor & Offerings",
+    categorySlug: "decor-offerings",
+    tags: ["kalash", "copper", "pooja", "navratri"],
+    badges: ["Pure Copper"],
+    rating: 4.6,
+    reviewCount: 98,
+    inStock: true,
+    isFeatured: false,
+    material: "Pure Copper, Brass trim",
+    weight: "1.5 kg",
+    pujaGuide: "Fill the kalash with water and place mango leaves around the rim. Place a coconut on top. Position near your deity during puja.",
+  },
+  {
+    id: "prod-6",
+    slug: "pure-cow-ghee-for-diya",
+    name: "Pure Cow Ghee for Diya",
+    nameHi: "गाय का शुद्ध घी (दीपक हेतु)",
+    description: "100% pure A2 cow ghee specially processed for lighting diyas. Burns clean with a bright steady flame and releases a subtle divine fragrance.",
+    price: 449,
+    mrp: 599,
+    image: "/images/products/cow-ghee.jpg",
+    images: ["/images/products/cow-ghee.jpg"],
+    category: "Puja Essentials",
+    categorySlug: "puja-essentials",
+    tags: ["ghee", "diya", "pure", "organic"],
+    badges: ["Pure", "Organic"],
+    rating: 4.8,
+    reviewCount: 421,
+    inStock: true,
+    isFeatured: true,
+    material: "A2 Cow Ghee",
+    weight: "500ml",
+    pujaGuide: "Pour a small amount into your diya. Place a cotton wick and light. The ghee flame is considered most auspicious.",
+  },
+  {
+    id: "prod-7",
+    slug: "sandalwood-chandan-paste",
+    name: "Sandalwood Chandan Paste",
+    nameHi: "चंदन का लेप",
+    description: "Pure Mysore sandalwood paste for tilak and puja. Hand-ground on traditional stone, retains natural fragrance and cooling properties.",
+    price: 299,
+    mrp: 450,
+    image: "/images/products/chandan.jpg",
+    images: ["/images/products/chandan.jpg"],
+    category: "Puja Essentials",
+    categorySlug: "puja-essentials",
+    tags: ["chandan", "sandalwood", "tilak"],
+    badges: ["Pure", "Organic"],
+    rating: 4.7,
+    reviewCount: 167,
+    inStock: true,
+    isFeatured: false,
+    material: "Mysore Sandalwood",
+    weight: "50g",
+  },
+  {
+    id: "prod-8",
+    slug: "wooden-mandir-temple",
+    name: "Wooden Home Mandir Temple",
+    nameHi: "लकड़ी का घर मंदिर",
+    description: "Beautifully hand-carved sheesham wood mandir with intricate jali work, gold leaf detailing, and LED-lit dome. Accommodates multiple deity idols.",
+    price: 8999,
+    mrp: 12999,
+    image: "/images/products/wooden-mandir.jpg",
+    images: ["/images/products/wooden-mandir.jpg"],
+    category: "Idols & Shrines",
+    categorySlug: "idols-shrines",
+    tags: ["mandir", "temple", "wooden", "home"],
+    badges: ["Handmade", "Premium"],
+    rating: 4.9,
+    reviewCount: 87,
+    inStock: true,
+    isFeatured: true,
+    material: "Sheesham Wood, Gold Leaf",
+    weight: "12 kg",
+  },
+  {
+    id: "prod-9",
+    slug: "akhand-jyot-brass",
+    name: "Akhand Jyot Brass Lamp",
+    nameHi: "अखंड ज्योत पीतल का दीपक",
+    description: "Traditional brass akhand jyot (eternal flame) lamp with wind guard. Perfect for continuous worship — keeps the flame burning uninterrupted.",
+    price: 649,
+    mrp: 899,
+    image: "/images/products/akhand-jyot.jpg",
+    images: ["/images/products/akhand-jyot.jpg"],
+    category: "Lamps & Diyas",
+    categorySlug: "lamps-diyas",
+    tags: ["akhand", "jyot", "lamp", "brass"],
+    badges: ["Pure Brass"],
+    rating: 4.5,
+    reviewCount: 143,
+    inStock: true,
+    isFeatured: false,
+    material: "Pure Brass",
+    weight: "450g",
+  },
+  {
+    id: "prod-10",
+    slug: "camphor-kapur-tablets",
+    name: "Pure Camphor Tablets (100 pcs)",
+    nameHi: "शुद्ध कपूर गोलियाँ",
+    description: "Premium edible-grade camphor tablets for aarti and puja. Burns clean without residue. Each tablet lasts 3-4 minutes with a bright, steady flame.",
+    price: 199,
+    mrp: 299,
+    image: "/images/products/camphor.jpg",
+    images: ["/images/products/camphor.jpg"],
+    category: "Puja Essentials",
+    categorySlug: "puja-essentials",
+    tags: ["camphor", "kapur", "aarti"],
+    badges: ["Pure"],
+    rating: 4.6,
+    reviewCount: 556,
+    inStock: true,
+    isFeatured: false,
+    material: "Edible-grade Camphor",
+    weight: "100g",
+  },
+  {
+    id: "prod-11",
+    slug: "gemstone-prayer-bracelet",
+    name: "7 Chakra Gemstone Bracelet",
+    nameHi: "7 चक्र रत्न ब्रेसलेट",
+    description: "Handmade bracelet with 7 natural gemstones representing each chakra. Features amethyst, lapis lazuli, turquoise, green aventurine, tiger's eye, carnelian, and red jasper.",
+    price: 599,
+    mrp: 899,
+    image: "/images/products/chakra-bracelet.jpg",
+    images: ["/images/products/chakra-bracelet.jpg"],
+    category: "Spiritual Wear",
+    categorySlug: "spiritual-wear",
+    tags: ["bracelet", "chakra", "gemstone", "healing"],
+    badges: ["Handmade", "Natural"],
+    rating: 4.4,
+    reviewCount: 203,
+    inStock: true,
+    isFeatured: false,
+    material: "Natural Gemstones, Elastic cord",
+    weight: "25g",
+  },
+  {
+    id: "prod-12",
+    slug: "decorative-toran-door-hanging",
+    name: "Decorative Toran Door Hanging",
+    nameHi: "सजावटी तोरण",
+    description: "Handcrafted mango leaf and marigold inspired toran for your main door. Made with durable synthetic materials that look and feel like fresh flowers.",
+    price: 499,
+    mrp: 699,
+    image: "/images/products/toran.jpg",
+    images: ["/images/products/toran.jpg"],
+    category: "Decor & Offerings",
+    categorySlug: "decor-offerings",
+    tags: ["toran", "door", "decoration", "hanging"],
+    badges: ["Handmade"],
+    rating: 4.3,
+    reviewCount: 178,
+    inStock: true,
+    isFeatured: false,
+    material: "Synthetic flowers, Metal wire",
+    weight: "300g",
+  },
+];
+
+export const occasions: Occasion[] = [
+  {
+    id: "occ-1",
+    slug: "diwali",
+    name: "Diwali",
+    nameHi: "दीपावली",
+    description: "Festival of Lights — illuminate your home with diyas, lamps, and sacred decorations.",
+    image: "/images/occasions/diwali.jpg",
+    date: "2025-10-20",
+    products: ["prod-3", "prod-6", "prod-5", "prod-12"],
+  },
+  {
+    id: "occ-2",
+    slug: "navratri",
+    name: "Navratri",
+    nameHi: "नवरात्रि",
+    description: "Nine Nights of the Goddess — special puja items for Durga worship.",
+    image: "/images/occasions/navratri.jpg",
+    date: "2025-10-02",
+    products: ["prod-1", "prod-5", "prod-10"],
+  },
+  {
+    id: "occ-3",
+    slug: "ganesh-chaturthi",
+    name: "Ganesh Chaturthi",
+    nameHi: "गणेश चतुर्थी",
+    description: "Welcome Lord Ganesh — eco-friendly idols and celebration essentials.",
+    image: "/images/occasions/ganesh-chaturthi.jpg",
+    date: "2025-08-27",
+    products: ["prod-2", "prod-1", "prod-3"],
+  },
+  {
+    id: "occ-4",
+    slug: "janmashtami",
+    name: "Janmashtami",
+    nameHi: "जन्माष्टमी",
+    description: "Birthday of Lord Krishna — jhankis, butter pots, and devotional decor.",
+    image: "/images/occasions/janmashtami.jpg",
+    date: "2025-08-16",
+    products: ["prod-1", "prod-6", "prod-12"],
+  },
+  {
+    id: "occ-5",
+    slug: "durga-puja",
+    name: "Durga Puja",
+    nameHi: "दुर्गा पूजा",
+    description: "Bengal's grandest festival — sindoor, dhunuchi, and divine accessories.",
+    image: "/images/occasions/durga-puja.jpg",
+    date: "2025-10-02",
+    products: ["prod-1", "prod-7", "prod-10"],
+  },
+  {
+    id: "occ-6",
+    slug: "holi",
+    name: "Holi",
+    nameHi: "होली",
+    description: "Festival of Colors — organic colors, water guns, and festive sweets.",
+    image: "/images/occasions/holi.jpg",
+    date: "2026-03-14",
+    products: ["prod-12", "prod-1"],
+  },
+  {
+    id: "occ-7",
+    slug: "daily-puja",
+    name: "Daily Puja",
+    nameHi: "दैनिक पूजा",
+    description: "Your everyday spiritual practice — essentials for morning and evening worship.",
+    image: "/images/occasions/daily-puja.jpg",
+    date: "",
+    products: ["prod-1", "prod-6", "prod-7", "prod-10", "prod-3"],
+  },
+];
+
+export const testimonials: Review[] = [
+  { id: "rev-1", userName: "Priya Sharma", city: "Jaipur", rating: 5, comment: "The quality of incense sticks is exceptional. My entire puja room smells divine!", date: "2025-01-15", verified: true },
+  { id: "rev-2", userName: "Rajesh Kumar", city: "Varanasi", rating: 5, comment: "Bought the brass Ganesh murti — the craftsmanship is simply stunning. Worth every rupee.", date: "2025-02-20", verified: true },
+  { id: "rev-3", userName: "Ananya Patel", city: "Ahmedabad", rating: 4, comment: "Beautiful diya set! The brass quality is genuine and they look gorgeous when lit during aarti.", date: "2025-01-28", verified: true },
+  { id: "rev-4", userName: "Suresh Reddy", city: "Hyderabad", rating: 5, comment: "The rudraksha mala feels authentic. Very happy with the quality and packaging.", date: "2025-03-05", verified: true },
+  { id: "rev-5", userName: "Meera Iyer", city: "Chennai", rating: 5, comment: "Fast delivery and beautifully packed. The wooden mandir exceeded my expectations!", date: "2025-02-14", verified: true },
+  { id: "rev-6", userName: "Vikram Singh", city: "Delhi", rating: 4, comment: "Pure cow ghee for diya — burns so clean and the flame is steady for hours. Highly recommended.", date: "2025-03-12", verified: true },
+  { id: "rev-7", userName: "Kavita Joshi", city: "Pune", rating: 5, comment: "The chandan paste is genuine Mysore quality. Nothing compares to this for my daily puja.", date: "2025-01-30", verified: true },
+  { id: "rev-8", userName: "Arun Nair", city: "Kochi", rating: 5, comment: "Ordered the copper kalash set for Navratri — it arrived beautifully polished and on time!", date: "2025-04-01", verified: true },
+  { id: "rev-9", userName: "Deepa Mishra", city: "Lucknow", rating: 4, comment: "Love the toran! It looks exactly like real marigold flowers. Everyone who visits asks where I got it.", date: "2025-03-18", verified: true },
+  { id: "rev-10", userName: "Ganesh Kulkarni", city: "Mumbai", rating: 5, comment: "The 7-chakra bracelet is beautiful and feels energizing. Great quality gemstones.", date: "2025-02-25", verified: true },
+];
+
+export const liveDarshans: LiveDarshan[] = [
+  {
+    id: "ld-1",
+    title: "Kashi Vishwanath Morning Aarti",
+    temple: "Kashi Vishwanath Temple",
+    deity: "Lord Shiva",
+    location: "Varanasi, Uttar Pradesh",
+    isLive: true,
+    scheduledAt: "2025-06-27T05:00:00+05:30",
+    viewerCount: 12453,
+    thumbnailUrl: "/images/darshan/kashi-vishwanath.png",
+  },
+  {
+    id: "ld-2",
+    title: "Tirupati Balaji Suprabhatam",
+    temple: "Tirumala Tirupati Devasthanams",
+    deity: "Lord Venkateswara",
+    location: "Tirupati, Andhra Pradesh",
+    isLive: false,
+    scheduledAt: "2025-06-27T06:30:00+05:30",
+    viewerCount: 0,
+    thumbnailUrl: "/images/darshan/tirupati.jpg",
+  },
+  {
+    id: "ld-3",
+    title: "Siddhivinayak Evening Aarti",
+    temple: "Siddhivinayak Temple",
+    deity: "Lord Ganesh",
+    location: "Mumbai, Maharashtra",
+    isLive: false,
+    scheduledAt: "2025-06-27T19:00:00+05:30",
+    viewerCount: 0,
+    thumbnailUrl: "/images/darshan/siddhivinayak.jpg",
+  },
+];
+
+export function getProductBySlug(slug: string): Product | undefined {
+  return products.find((p) => p.slug === slug);
+}
+
+export function getProductsByCategory(categorySlug: string): Product[] {
+  return products.filter((p) => p.categorySlug === categorySlug);
+}
+
+export function getFeaturedProducts(): Product[] {
+  return products.filter((p) => p.isFeatured);
+}
+
+export function getOccasionBySlug(slug: string): Occasion | undefined {
+  return occasions.find((o) => o.slug === slug);
+}
+
+export function getProductsForOccasion(occasion: Occasion): Product[] {
+  return products.filter((p) => occasion.products.includes(p.id));
+}
