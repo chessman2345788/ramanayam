@@ -1,49 +1,52 @@
 import type { Metadata } from "next";
-import { DM_Sans, JetBrains_Mono } from "next/font/google";
-import localFont from "next/font/local";
+import { cormorant, dmSans, jetbrainsMono, hind } from "./fonts";
 import "./globals.css";
 import { AppShell } from "@/components/layout/AppShell";
-
-
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-/* Yatra One is not a variable font — needs weight specified */
-const yatraOne = localFont({
-  src: "./fonts/YatraOne-Regular.ttf",
-  variable: "--font-yatra-one",
-  display: "swap",
-  weight: "400",
-});
+import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
+import { NotificationsProvider } from "@/components/admin/notifications/NotificationsContext";
+import { ActivityProvider } from "@/components/admin/activity/ActivityContext";
+import { SystemEventProvider } from "@/components/providers/SystemEventProvider";
 
 export const metadata: Metadata = {
-  title: "Ramanayam — Pure Ritual Products | Sacred E-Commerce",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://ramayanam.in"),
+  title: {
+    default: "Ramanayam — Sacred Rituals, Modern Living",
+    template: "%s | Ramanayam",
+  },
   description:
-    "Bring the Divine Home. Premium puja essentials, handcrafted idols, brass diyas, rudraksha malas, and spiritual decor. Delivered pan-India with love.",
+    "A premium spiritual lifestyle brand. Handcrafted puja essentials, artisan idols, brass diyas, rudraksha malas, and sacred décor — curated for the modern devotee. Delivered pan-India with reverence.",
   keywords: [
     "puja essentials",
-    "ritual products",
+    "spiritual lifestyle",
+    "handcrafted idols",
     "brass diya",
-    "incense sticks",
     "rudraksha mala",
-    "idol",
-    "spiritual decor",
-    "online puja shop",
+    "sacred decor",
+    "premium puja",
     "Ramanayam",
+    "temple products",
+    "live darshan",
   ],
+  authors: [{ name: "Ramanayam Spiritual Living" }],
+  creator: "Ramanayam",
+  publisher: "Ramanayam",
+  robots: {
+    index: true,
+    follow: true,
+  },
   openGraph: {
-    title: "Ramanayam — Pure Ritual Products",
-    description: "Bring the Divine Home. Premium puja essentials delivered pan-India.",
+    title: "Ramanayam — Sacred Rituals, Modern Living",
+    description:
+      "A premium spiritual lifestyle brand. Handcrafted puja essentials curated for the modern devotee.",
+    url: "https://ramayanam.in",
+    siteName: "Ramanayam",
+    locale: "en_IN",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Ramanayam — Sacred Rituals, Modern Living",
+    description: "Handcrafted puja essentials curated for the modern devotee.",
   },
 };
 
@@ -55,12 +58,19 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-theme="chandan"
-      className={`${dmSans.variable} ${jetbrainsMono.variable} ${yatraOne.variable} antialiased`}
+      suppressHydrationWarning
+      className={`${cormorant.variable} ${dmSans.variable} ${jetbrainsMono.variable} ${hind.variable}`}
     >
-      <body className="min-h-screen flex flex-col">
-        <AppShell>{children}</AppShell>
-
+      <body>
+        <ReactQueryProvider>
+          <NotificationsProvider>
+            <ActivityProvider>
+              <SystemEventProvider>
+                <AppShell>{children}</AppShell>
+              </SystemEventProvider>
+            </ActivityProvider>
+          </NotificationsProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );

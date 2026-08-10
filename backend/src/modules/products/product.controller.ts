@@ -1,0 +1,191 @@
+import { Request, Response } from "express";
+import { ProductService, UserContext } from "./product.service";
+import { sendSuccess } from "../../components/response";
+import { ProductFilters } from "./product.repository";
+
+export class ProductController {
+  constructor(private service: ProductService) {}
+
+  private getUserContext(req: Request): UserContext | undefined {
+    const user = (req as any).user;
+    if (!user) return undefined;
+    return {
+      id: user.id,
+      role: user.role,
+      vendorId: user.vendorId,
+    };
+  }
+
+  // ==========================================
+  // Product Operations
+  // ==========================================
+
+  createProduct = async (req: Request, res: Response): Promise<void> => {
+    const user = this.getUserContext(req);
+    const product = await this.service.createProduct(req.body, user);
+    sendSuccess(res, "Product created successfully", { product }, 201);
+  };
+
+  updateProduct = async (req: Request, res: Response): Promise<void> => {
+    const user = this.getUserContext(req);
+    const product = await this.service.updateProduct(req.params.id, req.body, user);
+    sendSuccess(res, "Product updated successfully", { product });
+  };
+
+  deleteProduct = async (req: Request, res: Response): Promise<void> => {
+    const user = this.getUserContext(req);
+    await this.service.deleteProduct(req.params.id, user);
+    sendSuccess(res, "Product deleted successfully");
+  };
+
+  getProductBySlug = async (req: Request, res: Response): Promise<void> => {
+    const product = await this.service.getProductBySlug(req.params.slug);
+    sendSuccess(res, "Product fetched successfully", { product });
+  };
+
+  getProductById = async (req: Request, res: Response): Promise<void> => {
+    const product = await this.service.getProductById(req.params.id);
+    sendSuccess(res, "Product fetched successfully", { product });
+  };
+
+  listProducts = async (req: Request, res: Response): Promise<void> => {
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = parseInt(req.query.limit as string, 10) || 10;
+    const sort = (req.query.sort as string) || "newest";
+
+    const filters: ProductFilters = {
+      categoryId: (req.query.category as string) || (req.query.categoryId as string),
+      vendorId: (req.query.vendor as string) || (req.query.vendorId as string),
+      status: req.query.status as any,
+      featured:
+        req.query.featured === "true" ? true : req.query.featured === "false" ? false : undefined,
+      availability: req.query.availability as string,
+      minPrice: req.query.minPrice ? parseFloat(req.query.minPrice as string) : undefined,
+      maxPrice: req.query.maxPrice ? parseFloat(req.query.maxPrice as string) : undefined,
+      search: (req.query.search as string) || (req.query.q as string),
+    };
+
+    const result = await this.service.listProducts(filters, sort, page, limit);
+    sendSuccess(res, "Products fetched successfully", result);
+  };
+
+  searchProducts = async (req: Request, res: Response): Promise<void> => {
+    const query = (req.query.q as string) || (req.query.search as string) || "";
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = parseInt(req.query.limit as string, 10) || 10;
+
+    const result = await this.service.searchProducts(query, page, limit);
+    sendSuccess(res, "Search results fetched successfully", result);
+  };
+
+  featuredProducts = async (req: Request, res: Response): Promise<void> => {
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = parseInt(req.query.limit as string, 10) || 10;
+
+    const result = await this.service.getFeaturedProducts(page, limit);
+    sendSuccess(res, "Featured products fetched successfully", result);
+  };
+
+  bestSellers = async (req: Request, res: Response): Promise<void> => {
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = parseInt(req.query.limit as string, 10) || 10;
+
+    const result = await this.service.getBestSellers(page, limit);
+    sendSuccess(res, "Best sellers fetched successfully", result);
+  };
+
+  newArrivals = async (req: Request, res: Response): Promise<void> => {
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = parseInt(req.query.limit as string, 10) || 10;
+
+    const result = await this.service.getNewArrivals(page, limit);
+    sendSuccess(res, "New arrivals fetched successfully", result);
+  };
+
+  getCategoryProducts = async (req: Request, res: Response): Promise<void> => {
+    const { categoryId } = req.params;
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = parseInt(req.query.limit as string, 10) || 10;
+
+    const result = await this.service.getCategoryProducts(categoryId, page, limit);
+    sendSuccess(res, "Category products fetched successfully", result);
+  };
+
+  // ==========================================
+  // Variant Operations
+  // ==========================================
+
+  createVariant = async (req: Request, res: Response): Promise<void> => {
+    const user = this.getUserContext(req);
+    const variant = await this.service.createVariant(req.params.productId, req.body, user);
+    sendSuccess(res, "Variant created successfully", { variant }, 201);
+  };
+
+  updateVariant = async (req: Request, res: Response): Promise<void> => {
+    const user = this.getUserContext(req);
+    const variant = await this.service.updateVariant(req.params.id, req.body, user);
+    sendSuccess(res, "Variant updated successfully", { variant });
+  };
+
+  deleteVariant = async (req: Request, res: Response): Promise<void> => {
+    const user = this.getUserContext(req);
+    await this.service.deleteVariant(req.params.id, user);
+    sendSuccess(res, "Variant deleted successfully");
+  };
+
+  // ==========================================
+  // Image Operations
+  // ==========================================
+
+  uploadImage = async (req: Request, res: Response): Promise<void> => {
+    const user = this.getUserContext(req);
+    const image = await this.service.uploadImage(req.params.productId, req.body, user);
+    sendSuccess(res, "Image uploaded successfully", { image }, 201);
+  };
+
+  deleteImage = async (req: Request, res: Response): Promise<void> => {
+    const user = this.getUserContext(req);
+    await this.service.deleteImage(req.params.imageId, user);
+    sendSuccess(res, "Image deleted successfully");
+  };
+
+  setPrimaryImage = async (req: Request, res: Response): Promise<void> => {
+    const user = this.getUserContext(req);
+    await this.service.setPrimaryImage(req.params.imageId, req.params.productId, user);
+    sendSuccess(res, "Primary image updated successfully");
+  };
+
+  // ==========================================
+  // Collection Operations
+  // ==========================================
+
+  createCollection = async (req: Request, res: Response): Promise<void> => {
+    const collection = await this.service.createCollection(req.body);
+    sendSuccess(res, "Collection created successfully", { collection }, 201);
+  };
+
+  updateCollection = async (req: Request, res: Response): Promise<void> => {
+    const collection = await this.service.updateCollection(req.params.id, req.body);
+    sendSuccess(res, "Collection updated successfully", { collection });
+  };
+
+  deleteCollection = async (req: Request, res: Response): Promise<void> => {
+    await this.service.deleteCollection(req.params.id);
+    sendSuccess(res, "Collection deleted successfully");
+  };
+
+  assignProductToCollection = async (req: Request, res: Response): Promise<void> => {
+    const user = this.getUserContext(req);
+    const { collectionId } = req.params;
+    const { productId } = req.body;
+    await this.service.assignProductToCollection(productId, collectionId, user);
+    sendSuccess(res, "Product assigned to collection successfully");
+  };
+
+  removeProductFromCollection = async (req: Request, res: Response): Promise<void> => {
+    const user = this.getUserContext(req);
+    const { collectionId, productId } = req.params;
+    await this.service.removeProductFromCollection(productId, collectionId, user);
+    sendSuccess(res, "Product removed from collection successfully");
+  };
+}

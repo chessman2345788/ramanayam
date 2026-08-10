@@ -1,78 +1,5 @@
-export interface Product {
-  id: string;
-  slug: string;
-  name: string;
-  nameHi: string;
-  description: string;
-  price: number;
-  mrp: number;
-  image: string;
-  images: string[];
-  category: string;
-  categorySlug: string;
-  tags: string[];
-  badges: string[];
-  rating: number;
-  reviewCount: number;
-  inStock: boolean;
-  isFeatured: boolean;
-  material?: string;
-  weight?: string;
-  pujaGuide?: string;
-  ingredients?: string[];
-}
-
-export interface Category {
-  id: string;
-  slug: string;
-  name: string;
-  nameHi: string;
-  nameSanskrit: string;
-  description: string;
-  image: string;
-  productCount: number;
-}
-
-export interface Occasion {
-  id: string;
-  slug: string;
-  name: string;
-  nameHi: string;
-  description: string;
-  image: string;
-  date: string;
-  products: string[];
-}
-
-export interface Review {
-  id: string;
-  userName: string;
-  city: string;
-  rating: number;
-  comment: string;
-  date: string;
-  verified: boolean;
-  image?: string;
-}
-
-export interface CartItem {
-  product: Product;
-  quantity: number;
-}
-
-export interface LiveDarshan {
-  id: string;
-  title: string;
-  temple: string;
-  deity: string;
-  location: string;
-  isLive: boolean;
-  scheduledAt: string;
-  viewerCount: number;
-  thumbnailUrl: string;
-  streamUrl?: string;
-}
-
+import type { Product, Category, Occasion, Review, CartItem, LiveDarshan } from "@/types/products";
+export type { Product, Category, Occasion, Review, CartItem, LiveDarshan };
 export const categories: Category[] = [
   {
     id: "cat-1",
@@ -81,7 +8,7 @@ export const categories: Category[] = [
     nameHi: "पूजा सामग्री",
     nameSanskrit: "पूजा द्रव्य",
     description: "Everything you need for your daily worship — incense, camphor, wicks, and sacred oils.",
-    image: "/images/categories/puja-essentials.jpg",
+    image: "https://images.unsplash.com/photo-1605647540924-852290f6b0d5?w=800&auto=format&fit=crop&q=80",
     productCount: 48,
   },
   {
@@ -91,7 +18,7 @@ export const categories: Category[] = [
     nameHi: "मूर्तियाँ और मंदिर",
     nameSanskrit: "मूर्ति एवं मन्दिर",
     description: "Handcrafted deity statues, wooden mandirs, and sacred altars for your home.",
-    image: "/images/categories/idols-shrines.jpg",
+    image: "https://images.unsplash.com/photo-1567591414240-e14b533d3958?w=800&auto=format&fit=crop&q=80",
     productCount: 35,
   },
   {
@@ -101,7 +28,7 @@ export const categories: Category[] = [
     nameHi: "दीपक और दीये",
     nameSanskrit: "दीप एवं ज्योति",
     description: "Traditional brass diyas, akhand jyots, and decorative floating lamps.",
-    image: "/images/categories/lamps-diyas.jpg",
+    image: "https://images.unsplash.com/photo-1509172237893-6c8f497a5f54?w=800&auto=format&fit=crop&q=80",
     productCount: 28,
   },
   {
@@ -111,7 +38,7 @@ export const categories: Category[] = [
     nameHi: "आध्यात्मिक पहनावा",
     nameSanskrit: "आध्यात्मिक वस्त्र",
     description: "Sacred malas, rudraksha beads, gemstone jewelry, and prayer shawls.",
-    image: "/images/categories/spiritual-wear.jpg",
+    image: "https://images.unsplash.com/photo-1602928321679-560bb453f190?w=800&auto=format&fit=crop&q=80",
     productCount: 42,
   },
   {
@@ -121,7 +48,7 @@ export const categories: Category[] = [
     nameHi: "सजावट और अर्पण",
     nameSanskrit: "अलंकार एवं उपहार",
     description: "Torans, rangoli stencils, copper kalash, and festive home decor.",
-    image: "/images/categories/decor-offerings.jpg",
+    image: "https://images.unsplash.com/photo-1542397284-3b167fe665d7?w=800&auto=format&fit=crop&q=80",
     productCount: 31,
   },
 ];
@@ -135,8 +62,8 @@ export const products: Product[] = [
     description: "Hand-rolled natural incense sticks made with pure sandalwood, jasmine, and rose extracts. Each stick burns for 45 minutes releasing a divine fragrance that purifies your puja space.",
     price: 349,
     mrp: 499,
-    image: "/images/products/agarbatti.jpg",
-    images: ["/images/products/agarbatti.jpg", "/images/products/agarbatti-2.jpg"],
+    image: "https://images.unsplash.com/photo-1605647540924-852290f6b0d5?w=800&auto=format&fit=crop&q=80",
+    images: ["https://images.unsplash.com/photo-1605647540924-852290f6b0d5?w=800&auto=format&fit=crop&q=80"],
     category: "Puja Essentials",
     categorySlug: "puja-essentials",
     tags: ["incense", "agarbatti", "sandalwood"],
@@ -158,8 +85,8 @@ export const products: Product[] = [
     description: "Exquisitely handcrafted Lord Ganesh idol in pure brass. Each piece is individually cast and polished to a golden sheen. Perfect for home mandir or office desk.",
     price: 2499,
     mrp: 3499,
-    image: "/images/products/ganesh-murti.jpg",
-    images: ["/images/products/ganesh-murti.jpg"],
+    image: "https://images.unsplash.com/photo-1567591414240-e14b533d3958?w=800&auto=format&fit=crop&q=80",
+    images: ["https://images.unsplash.com/photo-1567591414240-e14b533d3958?w=800&auto=format&fit=crop&q=80"],
     category: "Idols & Shrines",
     categorySlug: "idols-shrines",
     tags: ["ganesh", "brass", "idol", "murti"],
@@ -180,8 +107,8 @@ export const products: Product[] = [
     description: "Set of 5 handcrafted brass diyas with intricate floral motifs. Each diya holds ghee or oil for hours of continuous illumination during aarti and puja.",
     price: 799,
     mrp: 1199,
-    image: "/images/products/brass-diya.jpg",
-    images: ["/images/products/brass-diya.jpg"],
+    image: "https://images.unsplash.com/photo-1509172237893-6c8f497a5f54?w=800&auto=format&fit=crop&q=80",
+    images: ["https://images.unsplash.com/photo-1509172237893-6c8f497a5f54?w=800&auto=format&fit=crop&q=80"],
     category: "Lamps & Diyas",
     categorySlug: "lamps-diyas",
     tags: ["diya", "brass", "lamp", "set"],
@@ -202,8 +129,8 @@ export const products: Product[] = [
     description: "Authentic 5-Mukhi Rudraksha mala with 108 beads strung on sacred red thread. Each bead is hand-selected from Nepal for clarity and natural texture.",
     price: 1299,
     mrp: 1899,
-    image: "/images/products/rudraksha-mala.jpg",
-    images: ["/images/products/rudraksha-mala.jpg"],
+    image: "https://images.unsplash.com/photo-1602928321679-560bb453f190?w=800&auto=format&fit=crop&q=80",
+    images: ["https://images.unsplash.com/photo-1602928321679-560bb453f190?w=800&auto=format&fit=crop&q=80"],
     category: "Spiritual Wear",
     categorySlug: "spiritual-wear",
     tags: ["rudraksha", "mala", "prayer", "beads"],
@@ -218,14 +145,14 @@ export const products: Product[] = [
   },
   {
     id: "prod-5",
-    slug: "copper-kalash-with-coconut",
+    slug: "copper-kalash-with-coconut-set",
     name: "Copper Kalash with Coconut Set",
     nameHi: "तांबे का कलश नारियल सेट",
     description: "Pure copper kalash set with brass trim, mango leaves holder, and coconut stand. Essential for Griha Pravesh, Navratri, and festive pujas.",
     price: 1599,
     mrp: 2299,
-    image: "/images/products/copper-kalash.jpg",
-    images: ["/images/products/copper-kalash.jpg"],
+    image: "https://images.unsplash.com/photo-1605647540924-852290f6b0d5?w=800&auto=format&fit=crop&q=80",
+    images: ["https://images.unsplash.com/photo-1605647540924-852290f6b0d5?w=800&auto=format&fit=crop&q=80"],
     category: "Decor & Offerings",
     categorySlug: "decor-offerings",
     tags: ["kalash", "copper", "pooja", "navratri"],
@@ -246,8 +173,8 @@ export const products: Product[] = [
     description: "100% pure A2 cow ghee specially processed for lighting diyas. Burns clean with a bright steady flame and releases a subtle divine fragrance.",
     price: 449,
     mrp: 599,
-    image: "/images/products/cow-ghee.jpg",
-    images: ["/images/products/cow-ghee.jpg"],
+    image: "https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?w=800&auto=format&fit=crop&q=80",
+    images: ["https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?w=800&auto=format&fit=crop&q=80"],
     category: "Puja Essentials",
     categorySlug: "puja-essentials",
     tags: ["ghee", "diya", "pure", "organic"],
@@ -268,8 +195,8 @@ export const products: Product[] = [
     description: "Pure Mysore sandalwood paste for tilak and puja. Hand-ground on traditional stone, retains natural fragrance and cooling properties.",
     price: 299,
     mrp: 450,
-    image: "/images/products/chandan.jpg",
-    images: ["/images/products/chandan.jpg"],
+    image: "https://images.unsplash.com/photo-1605647540924-852290f6b0d5?w=800&auto=format&fit=crop&q=80",
+    images: ["https://images.unsplash.com/photo-1605647540924-852290f6b0d5?w=800&auto=format&fit=crop&q=80"],
     category: "Puja Essentials",
     categorySlug: "puja-essentials",
     tags: ["chandan", "sandalwood", "tilak"],
@@ -289,8 +216,8 @@ export const products: Product[] = [
     description: "Beautifully hand-carved sheesham wood mandir with intricate jali work, gold leaf detailing, and LED-lit dome. Accommodates multiple deity idols.",
     price: 8999,
     mrp: 12999,
-    image: "/images/products/wooden-mandir.jpg",
-    images: ["/images/products/wooden-mandir.jpg"],
+    image: "https://images.unsplash.com/photo-1582218084346-a36c92aa7a47?w=800&auto=format&fit=crop&q=80",
+    images: ["https://images.unsplash.com/photo-1582218084346-a36c92aa7a47?w=800&auto=format&fit=crop&q=80"],
     category: "Idols & Shrines",
     categorySlug: "idols-shrines",
     tags: ["mandir", "temple", "wooden", "home"],
@@ -310,8 +237,8 @@ export const products: Product[] = [
     description: "Traditional brass akhand jyot (eternal flame) lamp with wind guard. Perfect for continuous worship — keeps the flame burning uninterrupted.",
     price: 649,
     mrp: 899,
-    image: "/images/products/akhand-jyot.jpg",
-    images: ["/images/products/akhand-jyot.jpg"],
+    image: "https://images.unsplash.com/photo-1510344583000-84889601f782?w=800&auto=format&fit=crop&q=80",
+    images: ["https://images.unsplash.com/photo-1510344583000-84889601f782?w=800&auto=format&fit=crop&q=80"],
     category: "Lamps & Diyas",
     categorySlug: "lamps-diyas",
     tags: ["akhand", "jyot", "lamp", "brass"],
@@ -325,14 +252,14 @@ export const products: Product[] = [
   },
   {
     id: "prod-10",
-    slug: "camphor-kapur-tablets",
+    slug: "pure-camphor-tablets",
     name: "Pure Camphor Tablets (100 pcs)",
     nameHi: "शुद्ध कपूर गोलियाँ",
     description: "Premium edible-grade camphor tablets for aarti and puja. Burns clean without residue. Each tablet lasts 3-4 minutes with a bright, steady flame.",
     price: 199,
     mrp: 299,
-    image: "/images/products/camphor.jpg",
-    images: ["/images/products/camphor.jpg"],
+    image: "https://images.unsplash.com/photo-1605647540924-852290f6b0d5?w=800&auto=format&fit=crop&q=80",
+    images: ["https://images.unsplash.com/photo-1605647540924-852290f6b0d5?w=800&auto=format&fit=crop&q=80"],
     category: "Puja Essentials",
     categorySlug: "puja-essentials",
     tags: ["camphor", "kapur", "aarti"],
@@ -346,14 +273,14 @@ export const products: Product[] = [
   },
   {
     id: "prod-11",
-    slug: "gemstone-prayer-bracelet",
+    slug: "7-chakra-gemstone-bracelet",
     name: "7 Chakra Gemstone Bracelet",
     nameHi: "7 चक्र रत्न ब्रेसलेट",
     description: "Handmade bracelet with 7 natural gemstones representing each chakra. Features amethyst, lapis lazuli, turquoise, green aventurine, tiger's eye, carnelian, and red jasper.",
     price: 599,
     mrp: 899,
-    image: "/images/products/chakra-bracelet.jpg",
-    images: ["/images/products/chakra-bracelet.jpg"],
+    image: "https://images.unsplash.com/photo-1602928321679-560bb453f190?w=800&auto=format&fit=crop&q=80",
+    images: ["https://images.unsplash.com/photo-1602928321679-560bb453f190?w=800&auto=format&fit=crop&q=80"],
     category: "Spiritual Wear",
     categorySlug: "spiritual-wear",
     tags: ["bracelet", "chakra", "gemstone", "healing"],
@@ -373,8 +300,8 @@ export const products: Product[] = [
     description: "Handcrafted mango leaf and marigold inspired toran for your main door. Made with durable synthetic materials that look and feel like fresh flowers.",
     price: 499,
     mrp: 699,
-    image: "/images/products/toran.jpg",
-    images: ["/images/products/toran.jpg"],
+    image: "https://images.unsplash.com/photo-1542397284-3b167fe665d7?w=800&auto=format&fit=crop&q=80",
+    images: ["https://images.unsplash.com/photo-1542397284-3b167fe665d7?w=800&auto=format&fit=crop&q=80"],
     category: "Decor & Offerings",
     categorySlug: "decor-offerings",
     tags: ["toran", "door", "decoration", "hanging"],
@@ -395,7 +322,7 @@ export const occasions: Occasion[] = [
     name: "Diwali",
     nameHi: "दीपावली",
     description: "Festival of Lights — illuminate your home with diyas, lamps, and sacred decorations.",
-    image: "/images/occasions/diwali.jpg",
+    image: "https://images.unsplash.com/photo-1510344583000-84889601f782?w=800&auto=format&fit=crop&q=80",
     date: "2025-10-20",
     products: ["prod-3", "prod-6", "prod-5", "prod-12"],
   },
@@ -405,7 +332,7 @@ export const occasions: Occasion[] = [
     name: "Navratri",
     nameHi: "नवरात्रि",
     description: "Nine Nights of the Goddess — special puja items for Durga worship.",
-    image: "/images/occasions/navratri.jpg",
+    image: "https://images.unsplash.com/photo-1605647540924-852290f6b0d5?w=800&auto=format&fit=crop&q=80",
     date: "2025-10-02",
     products: ["prod-1", "prod-5", "prod-10"],
   },
@@ -415,7 +342,7 @@ export const occasions: Occasion[] = [
     name: "Ganesh Chaturthi",
     nameHi: "गणेश चतुर्थी",
     description: "Welcome Lord Ganesh — eco-friendly idols and celebration essentials.",
-    image: "/images/occasions/ganesh-chaturthi.jpg",
+    image: "https://images.unsplash.com/photo-1567591414240-e14b533d3958?w=800&auto=format&fit=crop&q=80",
     date: "2025-08-27",
     products: ["prod-2", "prod-1", "prod-3"],
   },
@@ -425,7 +352,7 @@ export const occasions: Occasion[] = [
     name: "Janmashtami",
     nameHi: "जन्माष्टमी",
     description: "Birthday of Lord Krishna — jhankis, butter pots, and devotional decor.",
-    image: "/images/occasions/janmashtami.jpg",
+    image: "https://images.unsplash.com/photo-1582218084346-a36c92aa7a47?w=800&auto=format&fit=crop&q=80",
     date: "2025-08-16",
     products: ["prod-1", "prod-6", "prod-12"],
   },
@@ -435,7 +362,7 @@ export const occasions: Occasion[] = [
     name: "Durga Puja",
     nameHi: "दुर्गा पूजा",
     description: "Bengal's grandest festival — sindoor, dhunuchi, and divine accessories.",
-    image: "/images/occasions/durga-puja.jpg",
+    image: "https://images.unsplash.com/photo-1605647540924-852290f6b0d5?w=800&auto=format&fit=crop&q=80",
     date: "2025-10-02",
     products: ["prod-1", "prod-7", "prod-10"],
   },
@@ -445,7 +372,7 @@ export const occasions: Occasion[] = [
     name: "Holi",
     nameHi: "होली",
     description: "Festival of Colors — organic colors, water guns, and festive sweets.",
-    image: "/images/occasions/holi.jpg",
+    image: "https://images.unsplash.com/photo-1542397284-3b167fe665d7?w=800&auto=format&fit=crop&q=80",
     date: "2026-03-14",
     products: ["prod-12", "prod-1"],
   },
@@ -455,7 +382,7 @@ export const occasions: Occasion[] = [
     name: "Daily Puja",
     nameHi: "दैनिक पूजा",
     description: "Your everyday spiritual practice — essentials for morning and evening worship.",
-    image: "/images/occasions/daily-puja.jpg",
+    image: "https://images.unsplash.com/photo-1602928321679-560bb453f190?q=80&w=800&auto=format&fit=crop",
     date: "",
     products: ["prod-1", "prod-6", "prod-7", "prod-10", "prod-3"],
   },
@@ -484,7 +411,7 @@ export const liveDarshans: LiveDarshan[] = [
     isLive: true,
     scheduledAt: "2025-06-27T05:00:00+05:30",
     viewerCount: 12453,
-    thumbnailUrl: "/images/darshan/kashi-vishwanath.png",
+    thumbnailUrl: "https://images.unsplash.com/photo-1627894483216-2138af692e32?q=80&w=800&auto=format&fit=crop",
   },
   {
     id: "ld-2",
@@ -495,7 +422,7 @@ export const liveDarshans: LiveDarshan[] = [
     isLive: false,
     scheduledAt: "2025-06-27T06:30:00+05:30",
     viewerCount: 0,
-    thumbnailUrl: "/images/darshan/tirupati.jpg",
+    thumbnailUrl: "https://images.unsplash.com/photo-1627894483216-2138af692e32?q=80&w=800&auto=format&fit=crop",
   },
   {
     id: "ld-3",
@@ -506,7 +433,7 @@ export const liveDarshans: LiveDarshan[] = [
     isLive: false,
     scheduledAt: "2025-06-27T19:00:00+05:30",
     viewerCount: 0,
-    thumbnailUrl: "/images/darshan/siddhivinayak.jpg",
+    thumbnailUrl: "https://images.unsplash.com/photo-1567591376020-f56b009e5ff4?q=80&w=800&auto=format&fit=crop",
   },
 ];
 

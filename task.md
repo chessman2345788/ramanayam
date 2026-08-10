@@ -5,7 +5,7 @@
 - [x] Install dependencies (framer-motion, zustand, lucide-react, clsx, tailwind-merge, sharp)
 - [x] Refine Design System & Global Styles in `src/app/globals.css`
 - [x] 3. Redesign Footer to Apple-style in `src/components/layout/Footer.tsx`
-- [/] 4. Redesign Hero Section in `src/components/home/HeroSection.tsx`
+- [x] 4. Redesign Hero Section in `src/components/home/HeroSection.tsx`
 
 ## Layout
 - [x] Navbar Component Redesign (`Navbar.tsx`)

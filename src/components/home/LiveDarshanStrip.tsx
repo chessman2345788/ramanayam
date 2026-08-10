@@ -1,46 +1,78 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Radio } from "lucide-react";
-import { liveDarshans } from "@/data/products";
 import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 
 export function LiveDarshanStrip() {
-  const liveStream = liveDarshans.find((d) => d.isLive);
-  const title = liveStream ? liveStream.title : "Kashi Vishwanath Morning Aarti";
-
   return (
-    <div className="py-3.5 px-6 border-y border-white/5" style={{ background: 'var(--gradient-strip)' }}>
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-        
-        {/* Live status label */}
-        <div className="flex items-center gap-3.5 flex-wrap justify-center sm:justify-start">
-          <div className="flex items-center gap-1.5 px-3 py-1 bg-saffron/10 border border-saffron/30 rounded-lg select-none">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-saffron opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-saffron" />
-            </span>
-            <span className="text-[10px] font-bold text-saffron tracking-widest uppercase">
-              Live Aarti
-            </span>
-          </div>
-          <span className="text-white/20 text-xs hidden sm:inline-block">|</span>
-          <span className="text-[#C8C8D5] text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 select-none">
-            <Radio className="w-3.5 h-3.5 text-saffron animate-pulse" />
-            Now Broadcasting: <span className="text-white font-bold">{title}</span>
+    <div
+      style={{
+        height: 52,
+        background: "var(--maroon)",
+        display: "flex",
+        alignItems: "center",
+      }}
+    >
+      <div
+        className="container"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <motion.span
+            animate={{ opacity: [1, 0.3, 1] }}
+            transition={{ duration: 1.2, repeat: Infinity }}
+            style={{
+              width: 7,
+              height: 7,
+              borderRadius: "50%",
+              background: "#FCA5A5",
+              display: "block",
+            }}
+          />
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.12em",
+              color: "#FCA5A5",
+              textTransform: "uppercase",
+            }}
+          >
+            Live Now
+          </span>
+          <span
+            style={{
+              width: 1,
+              height: 14,
+              background: "rgba(255,255,255,0.2)",
+            }}
+          />
+          <span style={{ fontSize: 13, color: "rgba(245,230,208,0.9)" }}>
+            Kashi Vishwanath Morning Aarti
           </span>
         </div>
 
-        {/* Action Link with transition scale */}
-        <Link href="/live-darshan" passHref legacyBehavior>
-          <motion.a
-            whileHover={{ scale: 1.03, color: "#FFFFFF" }}
-            whileTap={{ scale: 0.97 }}
-            className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-saffron hover:text-white transition-colors group cursor-pointer"
-          >
-            <span>Connect & View Portal</span>
-            <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
-          </motion.a>
+        <Link
+          href="/live-darshan"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            fontSize: 12,
+            color: "rgba(245,230,208,0.8)",
+            textDecoration: "none",
+          }}
+        >
+          <span style={{ fontSize: 11, color: "rgba(245,230,208,0.5)" }} className="hidden sm:inline">
+            12,453 watching
+          </span>
+          <span style={{ marginLeft: 12 }}>Watch</span>
+          <ArrowRight size={14} />
         </Link>
       </div>
     </div>

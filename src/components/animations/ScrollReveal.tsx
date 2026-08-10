@@ -1,100 +1,100 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { type ReactNode } from "react";
+import { useRef } from "react";
+import { motion, useInView, useReducedMotion } from "framer-motion";
+import { scrollRevealVariants, type RevealVariant } from "@/animations/scrollReveal";
 
 interface ScrollRevealProps {
-  children: ReactNode;
+  children: React.ReactNode;
+  variant?: RevealVariant;
   delay?: number;
   duration?: number;
-  yOffset?: number;
-  staggerChildren?: number;
+  className?: string;
+  style?: React.CSSProperties;
+  once?: boolean;
+  threshold?: number;
 }
 
 export function ScrollReveal({
   children,
+  variant = "fade-up",
   delay = 0,
-  duration = 0.85,
-  yOffset = 40,
-  staggerChildren = 0,
+  duration = 0.7,
+  className,
+  style,
+  once = true,
+  threshold = 0.15,
 }: ScrollRevealProps) {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: staggerChildren,
-        delayChildren: delay,
-      },
-    },
-  };
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once, amount: threshold });
+  const shouldReduceMotion = useReducedMotion();
 
-  const itemVariants = {
-    hidden: {
-      opacity: 0,
-      y: yOffset,
-      filter: "blur(8px)",
-      scale: 0.98,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      filter: "blur(0px)",
-      scale: 1,
-      transition: {
-        duration: duration,
-        ease: [0.16, 1, 0.3, 1] as any, // easeOutExpo
-      },
-    },
-  };
+  const v = scrollRevealVariants[variant];
 
-  if (staggerChildren > 0) {
+  if (shouldReduceMotion) {
     return (
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
-      >
+      <div className={className} style={style}>
         {children}
-      </motion.div>
+      </div>
     );
   }
 
   return (
     <motion.div
-      variants={itemVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
+      ref={ref}
+      initial={v.hidden}
+      animate={isInView ? v.visible : v.hidden}
+      transition={{
+        duration,
+        delay,
+        ease: [0.16, 1, 0.3, 1],
+      }}
+      className={className}
+      style={{
+        willChange: isInView ? "auto" : "transform, opacity",
+        ...style,
+      }}
     >
       {children}
     </motion.div>
   );
 }
 
-export function ScrollRevealItem({ children }: { children: ReactNode }) {
-  const itemVariants = {
-    hidden: {
-      opacity: 0,
-      y: 30,
-      filter: "blur(6px)",
-      scale: 0.99,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      filter: "blur(0px)",
-      scale: 1,
-      transition: {
-        duration: 0.8,
-        ease: [0.16, 1, 0.3, 1] as any,
-      },
-    },
-  };
+export function StaggerContainer({
+  children,
+  staggerDelay = 0.1,
+  className,
+  style,
+}: {
+  children: React.ReactNode;
+  staggerDelay?: number;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, amount: 0.1 });
+  const shouldReduceMotion = useReducedMotion();
+
+  if (shouldReduceMotion) {
+    return (
+      <div className={className} style={style}>
+        {children}
+      </div>
+    );
+  }
 
   return (
-    <motion.div variants={itemVariants}>
+    <motion.div
+      ref={ref}
+      initial="hidden"
+      animate={isInView ? "visible" : "hidden"}
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: staggerDelay } },
+      }}
+      className={className}
+      style={style}
+    >
       {children}
     </motion.div>
   );
