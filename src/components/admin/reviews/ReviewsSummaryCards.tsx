@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { MessageSquare, Clock, CheckCircle2, XCircle, Star, Package } from "lucide-react";
+import { MessageSquare, Clock, CheckCircle2, EyeOff, Star, ShieldCheck } from "lucide-react";
 import { AdminReviewDetail } from "@/data/mockReviewsData";
 
 interface ReviewsSummaryCardsProps {
@@ -12,73 +12,89 @@ export function ReviewsSummaryCards({ reviews }: ReviewsSummaryCardsProps) {
   const totalReviews = reviews.length;
   const pendingReviews = reviews.filter((r) => r.status === "PENDING").length;
   const approvedReviews = reviews.filter((r) => r.status === "APPROVED").length;
-  const rejectedReviews = reviews.filter((r) => r.status === "REJECTED" || r.status === "REPORTED").length;
-
-  const avgRating = totalReviews > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / totalReviews).toFixed(1) : "0.0";
-  const uniqueProductsWithReviews = new Set(reviews.map((r) => r.productId)).size;
+  const hiddenReviews = reviews.filter((r) => r.status === "HIDDEN" || r.status === "REJECTED").length;
+  
+  const avgRating =
+    totalReviews > 0
+      ? (reviews.reduce((acc, r) => acc + r.rating, 0) / totalReviews).toFixed(1)
+      : "0.0";
+      
+  const verifiedCount = reviews.filter((r) => r.isVerifiedPurchase).length;
+  const verifiedPercent = totalReviews > 0 ? Math.round((verifiedCount / totalReviews) * 100) : 0;
 
   const cards = [
-    { title: "Total Reviews", value: totalReviews, icon: MessageSquare, color: "#171717", bg: "rgba(0,0,0,0.04)" },
-    { title: "Pending Reviews", value: pendingReviews, icon: Clock, color: "#F57C00", bg: "rgba(245,124,0,0.08)" },
-    { title: "Approved Reviews", value: approvedReviews, icon: CheckCircle2, color: "#16A34A", bg: "rgba(22,163,74,0.08)" },
-    { title: "Rejected / Reported", value: rejectedReviews, icon: XCircle, color: "#DC2626", bg: "rgba(220,38,38,0.08)" },
-    { title: "Average Rating", value: `${avgRating} ★`, icon: Star, color: "#D4AF37", bg: "rgba(212,175,55,0.1)" },
-    { title: "Products with Reviews", value: uniqueProductsWithReviews, icon: Package, color: "#701A75", bg: "rgba(112,26,117,0.08)" },
+    {
+      title: "Total Reviews",
+      value: totalReviews,
+      subtitle: "All customer submissions",
+      icon: MessageSquare,
+      iconBg: "bg-stone-100 text-stone-800 border-stone-200",
+      valueColor: "text-stone-900",
+    },
+    {
+      title: "Pending Reviews",
+      value: pendingReviews,
+      subtitle: "Needs moderation",
+      icon: Clock,
+      iconBg: "bg-amber-50 text-amber-600 border-amber-200",
+      valueColor: "text-amber-600",
+    },
+    {
+      title: "Approved Reviews",
+      value: approvedReviews,
+      subtitle: "Live on storefront",
+      icon: CheckCircle2,
+      iconBg: "bg-emerald-50 text-emerald-600 border-emerald-200",
+      valueColor: "text-emerald-600",
+    },
+    {
+      title: "Hidden Reviews",
+      value: hiddenReviews,
+      subtitle: "Hidden or rejected",
+      icon: EyeOff,
+      iconBg: "bg-rose-50 text-rose-600 border-rose-200",
+      valueColor: "text-rose-600",
+    },
+    {
+      title: "Average Rating",
+      value: `${avgRating} ★`,
+      subtitle: "Overall customer rating",
+      icon: Star,
+      iconBg: "bg-amber-50 text-amber-700 border-amber-200",
+      valueColor: "text-amber-700",
+    },
+    {
+      title: "Verified Reviews",
+      value: verifiedCount,
+      subtitle: `${verifiedPercent}% verified buyers`,
+      icon: ShieldCheck,
+      iconBg: "bg-purple-50 text-purple-700 border-purple-200",
+      valueColor: "text-purple-700",
+    },
   ];
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-        gap: 14,
-      }}
-    >
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
       {cards.map((card) => {
         const IconComponent = card.icon;
         return (
           <div
             key={card.title}
-            style={{
-              background: "#FFFFFF",
-              borderRadius: 14,
-              border: "1px solid rgba(0,0,0,0.06)",
-              padding: "14px 16px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              gap: 10,
-              transition: "transform 0.15s ease, box-shadow 0.15s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,0,0,0.06)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.03)";
-            }}
+            className="bg-white rounded-2xl border border-stone-200/90 p-4 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col justify-between gap-3 group"
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: "#666666" }}>{card.title}</span>
-              <div
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 6,
-                  background: card.bg,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: card.color,
-                }}
-              >
-                <IconComponent size={15} />
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">{card.title}</span>
+              <div className={`w-8 h-8 rounded-xl border flex items-center justify-center transition-transform group-hover:scale-105 ${card.iconBg}`}>
+                <IconComponent className="w-4 h-4" />
               </div>
             </div>
 
-            <div style={{ fontSize: 20, fontWeight: 800, color: card.color }}>{card.value}</div>
+            <div>
+              <div className={`text-2xl font-extrabold font-display ${card.valueColor}`}>
+                {card.value}
+              </div>
+              <p className="text-[11px] font-medium text-stone-400 mt-0.5">{card.subtitle}</p>
+            </div>
           </div>
         );
       })}

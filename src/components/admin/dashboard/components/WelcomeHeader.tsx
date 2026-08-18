@@ -5,7 +5,12 @@ import Link from "next/link";
 import { Plus, ShoppingBag, Tag, Layers, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 
+import { useAuthStore } from "@/store/auth";
+
 export function WelcomeHeader() {
+  const { user } = useAuthStore();
+  const adminName = user?.firstName || user?.name?.split(" ")[0] || "Admin";
+
   const currentDate = new Date().toLocaleDateString("en-IN", {
     weekday: "long",
     year: "numeric",
@@ -22,7 +27,7 @@ export function WelcomeHeader() {
           <span>{currentDate}</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold font-serif text-[#7A1F1F] tracking-tight">
-          Good Morning, Admin 👋
+          Good Morning, {adminName} 👋
         </h1>
         <p className="text-xs sm:text-sm text-[#666666] mt-1 max-w-xl">
           Here is what is happening across Ramanayam temple puja bookings and spiritual e-commerce storefront today.

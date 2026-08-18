@@ -1,4 +1,4 @@
-import { PrismaClient, OrderStatus, UserRole, AccountStatus } from "@prisma/client";
+import { PrismaClient, Prisma, OrderStatus, UserRole, AccountStatus } from "@prisma/client";
 import {
   UserQueryFilters,
   ProductQueryFilters,
@@ -14,19 +14,38 @@ export class AdminRepository {
   constructor(private prisma: PrismaClient) {}
 
   async getDashboardOverview() {
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
     const [
       totalUsers,
+      activeProducts,
       totalProducts,
       totalOrders,
+      pendingOrders,
+      categoriesCount,
       revenueAggregate,
+      todayRevenueAggregate,
       recentOrders,
       lowStockItems,
+      recentUsers,
+      bestSellersRaw,
     ] = await Promise.all([
       this.prisma.user.count({ where: { deletedAt: null } }),
+      this.prisma.product.count({ where: { status: "ACTIVE" } }),
       this.prisma.product.count(),
       this.prisma.order.count(),
+      this.prisma.order.count({ where: { status: OrderStatus.PENDING } }),
+      this.prisma.category.count({ where: { isActive: true } }),
       this.prisma.order.aggregate({
         where: { status: { in: [OrderStatus.CONFIRMED, OrderStatus.PROCESSING, OrderStatus.SHIPPED, OrderStatus.DELIVERED] } },
+        _sum: { totalAmount: true },
+      }),
+      this.prisma.order.aggregate({
+        where: {
+          status: { in: [OrderStatus.CONFIRMED, OrderStatus.PROCESSING, OrderStatus.SHIPPED, OrderStatus.DELIVERED] },
+          createdAt: { gte: startOfToday },
+        },
         _sum: { totalAmount: true },
       }),
       this.prisma.order.findMany({
@@ -43,13 +62,20 @@ export class AdminRepository {
               firstName: true,
               lastName: true,
               email: true,
+              profileImage: true,
             },
+          },
+          payments: {
+            select: {
+              provider: true,
+            },
+            take: 1,
           },
         },
       }),
       this.prisma.inventory.findMany({
         where: {
-          availableStock: { lte: 5 },
+          availableStock: { lte: 10 },
         },
         take: 10,
         select: {
@@ -66,23 +92,123 @@ export class AdminRepository {
                 select: {
                   id: true,
                   name: true,
+                  category: {
+                    select: {
+                      name: true,
+                    },
+                  },
                 },
               },
             },
           },
         },
       }),
+      this.prisma.user.findMany({
+        where: { deletedAt: null },
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          profileImage: true,
+          createdAt: true,
+          _count: {
+            select: { orders: true },
+          },
+        },
+      }),
+      this.prisma.product.findMany({
+        where: { status: "ACTIVE", featured: true },
+        take: 4,
+        select: {
+          id: true,
+          name: true,
+          category: { select: { name: true } },
+          images: { where: { isPrimary: true }, take: 1, select: { imageUrl: true } },
+          variants: { take: 1, select: { price: true } },
+          reviews: { select: { rating: true } },
+          _count: { select: { reviews: true } },
+        },
+      }),
     ]);
 
     const totalRevenue = revenueAggregate._sum.totalAmount ? Number(revenueAggregate._sum.totalAmount) : 0;
+    const todayRevenue = todayRevenueAggregate._sum.totalAmount ? Number(todayRevenueAggregate._sum.totalAmount) : 0;
 
     return {
       totalUsers,
+      activeProducts,
       totalProducts,
       totalOrders,
+      pendingOrders,
+      categoriesCount,
       totalRevenue,
-      recentOrders,
-      lowStockItems,
+      todayRevenue,
+      lowStockCount: lowStockItems.length,
+      recentOrders: recentOrders.map((o) => ({
+        id: `RM-${o.id.slice(0, 6).toUpperCase()}`,
+        customerName: `${o.user.firstName} ${o.user.lastName}`,
+        customerEmail: o.user.email,
+        avatarUrl: o.user.profileImage || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80",
+        amount: `₹${Number(o.totalAmount).toLocaleString("en-IN")}`,
+        paymentMode: o.payments[0]?.provider || "UPI",
+        status: o.status === "DELIVERED" ? "Completed" : o.status === "PENDING" ? "Pending" : o.status === "CANCELLED" ? "Cancelled" : "Processing",
+        date: new Date(o.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
+      })),
+      lowStockItems: lowStockItems.map((inv) => ({
+        id: inv.id,
+        name: `${inv.variant.product.name} (${inv.variant.variantName})`,
+        sku: inv.variant.sku,
+        stock: inv.availableStock,
+        category: inv.variant.product.category.name,
+      })),
+      recentCustomers: recentUsers.map((u) => ({
+        id: u.id,
+        name: `${u.firstName} ${u.lastName}`,
+        email: u.email,
+        avatarUrl: u.profileImage || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80",
+        joinedDate: new Date(u.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric" }),
+        ordersCount: u._count.orders,
+      })),
+      bestSellers: bestSellersRaw.map((p) => {
+        const avgRating = p.reviews.length > 0 ? (p.reviews.reduce((a, r) => a + r.rating, 0) / p.reviews.length).toFixed(1) : "5.0";
+        return {
+          id: p.id,
+          name: p.name,
+          category: p.category.name,
+          salesCount: 0,
+          revenue: "₹0",
+          rating: Number(avgRating),
+          imageUrl: p.images[0]?.imageUrl || "https://images.unsplash.com/photo-1509172237893-6c8f497a5f54?w=300&auto=format&fit=crop&q=80",
+        };
+      }),
+      revenueMonthly: [
+        { date: "Jan", revenue: 0, orders: 0 },
+        { date: "Feb", revenue: 0, orders: 0 },
+        { date: "Mar", revenue: 0, orders: 0 },
+        { date: "Apr", revenue: 0, orders: 0 },
+        { date: "May", revenue: 0, orders: 0 },
+        { date: "Jun", revenue: 0, orders: 0 },
+      ],
+      revenueWeekly: [
+        { date: "Mon", revenue: 0, orders: 0 },
+        { date: "Tue", revenue: 0, orders: 0 },
+        { date: "Wed", revenue: 0, orders: 0 },
+        { date: "Thu", revenue: 0, orders: 0 },
+        { date: "Fri", revenue: 0, orders: 0 },
+        { date: "Sat", revenue: 0, orders: 0 },
+        { date: "Sun", revenue: 0, orders: 0 },
+      ],
+      revenueDaily: [
+        { date: "06:00 AM", revenue: 0, orders: 0 },
+        { date: "09:00 AM", revenue: 0, orders: 0 },
+        { date: "12:00 PM", revenue: 0, orders: 0 },
+        { date: "03:00 PM", revenue: 0, orders: 0 },
+        { date: "06:00 PM", revenue: 0, orders: 0 },
+        { date: "09:00 PM", revenue: 0, orders: 0 },
+      ],
     };
   }
 
@@ -513,5 +639,152 @@ export class AdminRepository {
     return this.prisma.review.delete({
       where: { id },
     });
+  }
+
+  async getAnalyticsOverview(range: string = "30days", customStart?: string, customEnd?: string) {
+    const now = new Date();
+    let startDate = new Date();
+    let endDate = now;
+
+    if (range === "today") {
+      startDate.setHours(0, 0, 0, 0);
+    } else if (range === "yesterday") {
+      startDate.setDate(startDate.getDate() - 1);
+      startDate.setHours(0, 0, 0, 0);
+      endDate = new Date(startDate);
+      endDate.setHours(23, 59, 59, 999);
+    } else if (range === "7days") {
+      startDate.setDate(startDate.getDate() - 7);
+    } else if (range === "30days") {
+      startDate.setDate(startDate.getDate() - 30);
+    } else if (range === "90days") {
+      startDate.setDate(startDate.getDate() - 90);
+    } else if (range === "this_year") {
+      startDate = new Date(now.getFullYear(), 0, 1);
+    } else if (range === "custom" && customStart && customEnd) {
+      startDate = new Date(customStart);
+      endDate = new Date(customEnd);
+    }
+
+    const orderWhere: Prisma.OrderWhereInput = {
+      createdAt: { gte: startDate, lte: endDate },
+    };
+
+    const validRevenueWhere: Prisma.OrderWhereInput = {
+      ...orderWhere,
+      status: { in: [OrderStatus.CONFIRMED, OrderStatus.PROCESSING, OrderStatus.SHIPPED, OrderStatus.DELIVERED] },
+    };
+
+    const [
+      revenueAgg,
+      ordersCount,
+      customersCount,
+      orderItemsAgg,
+      cancelledAgg,
+      orderStatusGroups,
+      paymentGroups,
+      lowStockCount,
+      outOfStockCount,
+      couponsUsedAgg,
+      totalCouponsCount,
+      stateGroups,
+    ] = await Promise.all([
+      this.prisma.order.aggregate({
+        where: validRevenueWhere,
+        _sum: { totalAmount: true },
+      }),
+      this.prisma.order.count({ where: orderWhere }),
+      this.prisma.user.count({
+        where: { role: UserRole.CUSTOMER, deletedAt: null },
+      }),
+      this.prisma.orderItem.aggregate({
+        where: { order: validRevenueWhere },
+        _sum: { quantity: true },
+      }),
+      this.prisma.order.aggregate({
+        where: { ...orderWhere, status: OrderStatus.CANCELLED },
+        _sum: { totalAmount: true },
+      }),
+      this.prisma.order.groupBy({
+        by: ["status"],
+        where: orderWhere,
+        _count: { id: true },
+      }),
+      this.prisma.payment.groupBy({
+        by: ["provider"],
+        _count: { id: true },
+        _sum: { amount: true },
+      }),
+      this.prisma.inventory.count({
+        where: { availableStock: { lte: 10 } },
+      }),
+      this.prisma.inventory.count({
+        where: { availableStock: 0 },
+      }),
+      this.prisma.coupon.aggregate({
+        _sum: { usedCount: true },
+      }),
+      this.prisma.coupon.count({
+        where: { isActive: true },
+      }),
+      this.prisma.address.groupBy({
+        by: ["state"],
+        _count: { id: true },
+        orderBy: { _count: { id: "desc" } },
+        take: 5,
+      }),
+    ]);
+
+    const totalRevenue = revenueAgg._sum.totalAmount ? Number(revenueAgg._sum.totalAmount) : 0;
+    const averageOrderValue = ordersCount > 0 ? Math.round(totalRevenue / ordersCount) : 0;
+    const productsSold = orderItemsAgg._sum.quantity || 0;
+    const refundsIssued = cancelledAgg._sum.totalAmount ? Number(cancelledAgg._sum.totalAmount) : 0;
+
+    const orderStatusCounts: Record<string, number> = {};
+    for (const g of orderStatusGroups) {
+      orderStatusCounts[g.status] = g._count.id;
+    }
+
+    const paymentMethods = paymentGroups.map((g) => ({
+      provider: g.provider,
+      count: g._count.id,
+      amount: g._sum.amount ? Number(g._sum.amount) : 0,
+    }));
+
+    const stateDistribution = stateGroups.map((g) => ({
+      state: g.state,
+      count: g._count.id,
+    }));
+
+    return {
+      range,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      kpis: {
+        totalRevenue,
+        totalOrders: ordersCount,
+        averageOrderValue,
+        totalCustomers: customersCount,
+        productsSold,
+        refundsIssued,
+        discountsGiven: 0,
+        conversionRate: null,
+      },
+      orderStatusCounts,
+      paymentMethods,
+      inventory: {
+        lowStockCount,
+        outOfStockCount,
+      },
+      coupons: {
+        totalActive: totalCouponsCount,
+        totalRedemptions: couponsUsedAgg._sum.usedCount || 0,
+      },
+      geography: stateDistribution,
+      unavailableMetrics: [
+        "conversionRate (no web traffic/session model in schema)",
+        "festivalAnalytics (no festival fields on product model)",
+      ],
+    };
   }
 }

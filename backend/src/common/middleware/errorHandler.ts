@@ -36,6 +36,8 @@ export const errorHandler = (
       field: e.path.join("."),
       message: e.message,
     }));
+    logger.error("Zod Validation Error:", { errors });
+    console.error("=== ZOD VALIDATION ERROR ===", JSON.stringify(errors, null, 2));
   }
 
   // ─── Prisma: Unique constraint violation ───────────────────────────

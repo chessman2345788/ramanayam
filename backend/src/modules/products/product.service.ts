@@ -322,4 +322,164 @@ export class ProductService {
     }
     await this.repository.removeFromCollection(productId, collectionId);
   }
+
+  // ==========================================
+  // CSV Import Operations
+  // ==========================================
+
+  async validateCsvImport(rows: Record<string, any>[]): Promise<{
+    summary: {
+      totalRows: number;
+      validRows: number;
+      invalidRows: number;
+      duplicateSkus: number;
+      missingCategories: number;
+    };
+    errors: Array<{ row: number; sku: string; field: string; message: string; value: any }>;
+    validProducts: any[];
+  }> {
+    const categories = await this.repository.findAllCategories();
+    const categoryMap = new Map<string, string>();
+
+    for (const c of categories) {
+      categoryMap.set(c.name.toLowerCase().trim(), c.id);
+      categoryMap.set(c.slug.toLowerCase().trim(), c.id);
+    }
+
+    const rawSkus = rows.map((r) => String(r.sku || r.SKU || "").trim()).filter(Boolean);
+    const existingDbSkus = new Set(await this.repository.findExistingSkus(rawSkus));
+
+    const defaultVendorId = await this.repository.findDefaultVendorId();
+
+    const errors: Array<{ row: number; sku: string; field: string; message: string; value: any }> = [];
+    const validProducts: any[] = [];
+    const seenCsvSkus = new Set<string>();
+
+    let duplicateSkuCount = 0;
+    let missingCategoryCount = 0;
+
+    rows.forEach((row, index) => {
+      const rowNum = index + 1;
+      const name = String(row.name || row["Product Name"] || "").trim();
+      const sku = String(row.sku || row.SKU || "").trim();
+      const categoryName = String(row.category || row.Category || "").trim();
+      const priceVal = parseFloat(row.price || row["Selling Price"] || row.Price);
+      const mrpVal = row.compareAtPrice || row.MRP || row["Compare At Price"] ? parseFloat(row.compareAtPrice || row.MRP || row["Compare At Price"]) : undefined;
+      const stockVal = parseInt(row.stock || row.Stock || row.availableStock || "0", 10);
+      const description = String(row.description || row.Description || "").trim();
+      const shortDescription = String(row.shortDescription || row["Short Description"] || "").trim();
+      const seoTitle = String(row.seoTitle || row["SEO Title"] || "").trim();
+      const seoDescription = String(row.seoDescription || row["SEO Description"] || "").trim();
+      const weightVal = row.weight || row["Weight (g)"] ? parseFloat(row.weight || row["Weight (g)"]) : undefined;
+      const featured = String(row.featured || row.Featured || "").toLowerCase() === "true" || row.featured === true;
+      const statusRaw = String(row.status || row.Status || "ACTIVE").toUpperCase().trim();
+
+      // Collect image URLs
+      const images: string[] = [];
+      ["image_1", "image_2", "image_3", "image_4", "image_5", "image", "images"].forEach((imgKey) => {
+        if (row[imgKey] && typeof row[imgKey] === "string" && row[imgKey].trim().startsWith("http")) {
+          images.push(row[imgKey].trim());
+        }
+      });
+
+      let hasError = false;
+
+      if (!name) {
+        errors.push({ row: rowNum, sku, field: "name", message: "Product Name is required", value: name });
+        hasError = true;
+      }
+
+      if (!sku) {
+        errors.push({ row: rowNum, sku, field: "sku", message: "SKU is required", value: sku });
+        hasError = true;
+      } else if (existingDbSkus.has(sku)) {
+        errors.push({ row: rowNum, sku, field: "sku", message: `SKU "${sku}" already exists in database`, value: sku });
+        duplicateSkuCount++;
+        hasError = true;
+      } else if (seenCsvSkus.has(sku)) {
+        errors.push({ row: rowNum, sku, field: "sku", message: `Duplicate SKU "${sku}" found within CSV file`, value: sku });
+        duplicateSkuCount++;
+        hasError = true;
+      } else {
+        seenCsvSkus.add(sku);
+      }
+
+      const normalizedCat = categoryName.toLowerCase().trim();
+      const matchedCategoryId = categoryMap.get(normalizedCat);
+      if (!matchedCategoryId) {
+        errors.push({ row: rowNum, sku, field: "category", message: `Category "${categoryName}" not found in store hierarchy`, value: categoryName });
+        missingCategoryCount++;
+        hasError = true;
+      }
+
+      if (isNaN(priceVal) || priceVal <= 0) {
+        errors.push({ row: rowNum, sku, field: "price", message: "Selling price must be a valid positive number (> 0)", value: row.price });
+        hasError = true;
+      }
+
+      if (mrpVal !== undefined && (isNaN(mrpVal) || mrpVal < priceVal)) {
+        errors.push({ row: rowNum, sku, field: "compareAtPrice", message: "MRP must be greater than or equal to Selling Price", value: row.mrp });
+        hasError = true;
+      }
+
+      if (isNaN(stockVal) || stockVal < 0) {
+        errors.push({ row: rowNum, sku, field: "stock", message: "Stock quantity must be a non-negative integer (>= 0)", value: row.stock });
+        hasError = true;
+      }
+
+      if (!hasError && matchedCategoryId) {
+        const slug = this.generateSlug(name) + "-" + Math.random().toString(36).substring(2, 6);
+        let status: any = "ACTIVE";
+        if (["DRAFT", "ARCHIVED", "OUT_OF_STOCK"].includes(statusRaw)) {
+          status = statusRaw;
+        }
+
+        validProducts.push({
+          name,
+          slug,
+          sku,
+          categoryId: matchedCategoryId,
+          vendorId: defaultVendorId,
+          price: priceVal,
+          compareAtPrice: mrpVal,
+          stock: stockVal,
+          status,
+          featured,
+          description: description || undefined,
+          shortDescription: shortDescription || undefined,
+          seoTitle: seoTitle || undefined,
+          seoDescription: seoDescription || undefined,
+          weight: weightVal,
+          images,
+        });
+      }
+    });
+
+    return {
+      summary: {
+        totalRows: rows.length,
+        validRows: validProducts.length,
+        invalidRows: rows.length - validProducts.length,
+        duplicateSkus: duplicateSkuCount,
+        missingCategories: missingCategoryCount,
+      },
+      errors,
+      validProducts,
+    };
+  }
+
+  async executeCsvImport(validProducts: any[]): Promise<{
+    createdCount: number;
+    failedCount: number;
+  }> {
+    if (!validProducts || validProducts.length === 0) {
+      throw new AppError("No valid products provided for import execution", 400);
+    }
+
+    const createdCount = await this.repository.batchImportProducts(validProducts);
+    return {
+      createdCount,
+      failedCount: validProducts.length - createdCount,
+    };
+  }
 }

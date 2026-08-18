@@ -2,7 +2,7 @@
 
 import React from "react";
 import { ReviewStatus } from "@/data/mockReviewsData";
-import { Clock, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { Clock, CheckCircle2, XCircle, AlertTriangle, EyeOff } from "lucide-react";
 
 interface StatusBadgeProps {
   status: ReviewStatus;
@@ -13,42 +13,38 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     switch (status) {
       case "APPROVED":
         return {
-          bg: "rgba(22,163,74,0.1)",
-          color: "#16A34A",
-          border: "rgba(22,163,74,0.25)",
-          icon: <CheckCircle2 size={12} />,
+          bg: "bg-emerald-50 text-emerald-700 border-emerald-200",
+          icon: <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />,
           label: "Approved",
         };
       case "PENDING":
         return {
-          bg: "rgba(245,124,0,0.1)",
-          color: "#F57C00",
-          border: "rgba(245,124,0,0.25)",
-          icon: <Clock size={12} />,
+          bg: "bg-amber-50 text-amber-700 border-amber-200",
+          icon: <Clock className="w-3.5 h-3.5 text-amber-600" />,
           label: "Pending",
         };
-      case "REJECTED":
+      case "HIDDEN":
         return {
-          bg: "rgba(220,38,38,0.1)",
-          color: "#DC2626",
-          border: "rgba(220,38,38,0.25)",
-          icon: <XCircle size={12} />,
-          label: "Rejected",
+          bg: "bg-stone-100 text-stone-700 border-stone-300",
+          icon: <EyeOff className="w-3.5 h-3.5 text-stone-500" />,
+          label: "Hidden",
         };
       case "REPORTED":
         return {
-          bg: "rgba(112,26,117,0.1)",
-          color: "#701A75",
-          border: "rgba(112,26,117,0.25)",
-          icon: <AlertTriangle size={12} />,
+          bg: "bg-rose-50 text-rose-800 border-rose-200",
+          icon: <AlertTriangle className="w-3.5 h-3.5 text-rose-700" />,
           label: "Reported",
+        };
+      case "REJECTED":
+        return {
+          bg: "bg-red-50 text-red-700 border-red-200",
+          icon: <XCircle className="w-3.5 h-3.5 text-red-600" />,
+          label: "Rejected",
         };
       default:
         return {
-          bg: "rgba(0,0,0,0.06)",
-          color: "#666666",
-          border: "rgba(0,0,0,0.1)",
-          icon: <Clock size={12} />,
+          bg: "bg-stone-100 text-stone-600 border-stone-200",
+          icon: <Clock className="w-3.5 h-3.5 text-stone-400" />,
           label: status,
         };
     }
@@ -58,21 +54,10 @@ export function StatusBadge({ status }: StatusBadgeProps) {
 
   return (
     <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 4,
-        padding: "3px 8px",
-        borderRadius: 6,
-        fontSize: 11,
-        fontWeight: 600,
-        background: style.bg,
-        color: style.color,
-        border: `1px solid ${style.border}`,
-      }}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border shadow-2xs transition-colors ${style.bg}`}
     >
       {style.icon}
-      {style.label}
+      <span>{style.label}</span>
     </span>
   );
 }

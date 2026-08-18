@@ -16,7 +16,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     try {
-      if (!sessionStorage.getItem("ramanayam-visited")) {
+      if (typeof window !== "undefined" && !sessionStorage.getItem("ramanayam-visited")) {
         setShowSplash(true);
       }
     } catch {

@@ -16,7 +16,8 @@ import { OrderService } from "@/services/order.service";
 import { AdminSearchBar, AdminPagination, AdminToast } from "@/components/admin/ui";
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>(mockOrdersList);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkOpen, setIsBulkOpen] = useState(false);
   const [activeInvoiceOrder, setActiveInvoiceOrder] = useState<Order | null>(null);
@@ -40,56 +41,71 @@ export default function OrdersPage() {
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  useEffect(() => {
-    async function loadOrders() {
-      try {
-        const apiOrders = await OrderService.fetchAdminOrdersFromApi();
-        if (apiOrders && apiOrders.length > 0) {
-          const formatted: Order[] = apiOrders.map((o, idx) => ({
-            id: o.id || `ORD-${idx + 100}`,
+  const reloadOrders = async () => {
+    setIsLoading(true);
+    try {
+      const apiOrders = await OrderService.fetchAdminOrdersFromApi();
+      if (apiOrders && apiOrders.length > 0) {
+        const formatted: Order[] = apiOrders.map((o: any, idx) => {
+          const raw = o.rawOrder || {};
+          const paymentObj = raw.payments?.[0] || {};
+
+          let orderStatus: OrderStatus = "Pending";
+          switch (o.orderStatus) {
+            case "CONFIRMED":
+              orderStatus = "Confirmed";
+              break;
+            case "PROCESSING":
+              orderStatus = "Packed";
+              break;
+            case "SHIPPED":
+              orderStatus = "Shipped";
+              break;
+            case "DELIVERED":
+              orderStatus = "Delivered";
+              break;
+            case "CANCELLED":
+              orderStatus = "Cancelled";
+              break;
+            case "RETURNED":
+              orderStatus = "Returned";
+              break;
+            default:
+              orderStatus = "Pending";
+          }
+
+          return {
+            id: o.id,
             customer: {
-              id: `c-${idx}`,
+              id: o.userId || `c-${idx}`,
               name: o.customerName,
               email: o.customerEmail,
               phone: "+91 98765 43210",
-              totalOrders: 3,
-              totalSpent: 4500,
-              badge: "VIP",
+              totalOrders: 1,
+              totalSpent: o.totalAmount,
+              badge: "Regular",
               joinedDate: "2024-01-15",
             },
             shippingAddress: {
               name: o.customerName,
-              phone: "+91 98765 43210",
-              street: "Flat 402, Shri Krishna Complex",
-              city: "Mathura",
+              street: "123 Temple Road",
+              city: "Varanasi",
               state: "Uttar Pradesh",
-              pincode: "281001",
+              pincode: "221001",
               country: "India",
+              phone: "+91 98765 43210",
             },
             billingAddress: {
               name: o.customerName,
-              phone: "+91 98765 43210",
-              street: "Flat 402, Shri Krishna Complex",
-              city: "Mathura",
+              street: "123 Temple Road",
+              city: "Varanasi",
               state: "Uttar Pradesh",
-              pincode: "281001",
+              pincode: "221001",
               country: "India",
+              phone: "+91 98765 43210",
             },
-            items: [
-              {
-                id: `item-${idx}`,
-                productId: `p-${idx}`,
-                name: "Brass Puja Diya",
-                image: "/images/products/placeholder.jpg",
-                sku: `SKU-${idx + 100}`,
-                price: 750,
-                quantity: 2,
-                gstRate: 18,
-                hsnCode: "7419",
-                total: 1500,
-              },
-            ],
-            itemsCount: o.itemsCount || 2,
+            items: [],
+            itemsCount: o.itemsCount || 1,
             subtotal: o.totalAmount,
             shippingCharges: 0,
             gstSummary: {
@@ -103,31 +119,56 @@ export default function OrdersPage() {
               amount: 0,
             },
             totalAmount: o.totalAmount,
-            paymentMethod: "UPI",
-            paymentStatus: o.paymentStatus as any,
-            orderStatus: (o.orderStatus === "PENDING" ? "Confirmed" : o.orderStatus === "SHIPPED" ? "Shipped" : "Delivered") as any,
-            transactionId: `TXN-${idx + 5000}`,
+            paymentMethod: paymentObj.provider || "RAZORPAY",
+            paymentStatus: (paymentObj.status === "SUCCESS" ? "Paid" : paymentObj.status === "REFUNDED" ? "Refunded" : "Pending") as any,
+            orderStatus,
+            transactionId: paymentObj.transactionId || `TXN-${o.id.slice(0, 8)}`,
             date: new Date(o.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
-            time: "10:30 AM",
+            time: new Date(o.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
             createdAtISO: o.createdAt,
             timeline: [],
             notes: [],
-          }));
-          setOrders(formatted);
-        }
-      } catch (err) {
-        console.warn("Orders API fetch fallback to mock:", err);
+          };
+        });
+        setOrders(formatted);
+      } else {
+        setOrders([]);
       }
+    } catch (err: any) {
+      console.error("Failed to load orders from API:", err);
+      showToast("Failed to load orders from database.");
+      setOrders([]);
+    } finally {
+      setIsLoading(false);
     }
-    loadOrders();
+  };
+
+  useEffect(() => {
+    reloadOrders();
   }, []);
 
   const handleStatusUpdate = async (orderId: string, nextStatus: OrderStatus) => {
-    await OrderService.updateOrderStatusFromApi(orderId, nextStatus);
-    setOrders((prev) =>
-      prev.map((ord) => (ord.id === orderId ? { ...ord, orderStatus: nextStatus } : ord))
-    );
-    showToast(`Order ${orderId} updated to ${nextStatus}.`);
+    const backendStatusMap: Record<string, string> = {
+      Pending: "PENDING",
+      Confirmed: "CONFIRMED",
+      Packed: "PROCESSING",
+      Processing: "PROCESSING",
+      Shipped: "SHIPPED",
+      Delivered: "DELIVERED",
+      Cancelled: "CANCELLED",
+      Returned: "RETURNED",
+    };
+
+    const backendStatus = backendStatusMap[nextStatus] || nextStatus.toUpperCase();
+
+    try {
+      await OrderService.updateOrderStatusFromApi(orderId, backendStatus);
+      showToast(`Order status updated to ${nextStatus}.`);
+      await reloadOrders();
+    } catch (err: any) {
+      const errMsg = err?.response?.data?.message || err?.message || "Status transition failed.";
+      showToast(`Transition Error: ${errMsg}`);
+    }
   };
 
   const filteredOrders = useMemo(() => {

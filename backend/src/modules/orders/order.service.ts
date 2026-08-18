@@ -30,9 +30,22 @@ export class OrderService {
    */
   async createOrderFromCart(
     userId: string,
-    data: { paymentProvider?: string; notes?: string } = {},
+    data: { items?: Array<{ variantId?: string; id?: string; quantity: number }>; paymentProvider?: string; notes?: string } = {},
   ) {
-    const cart = await this.cartService.getCart(userId);
+    let cart = await this.cartService.getCart(userId);
+
+    // If DB cart is empty but items were passed in request payload (direct/guest checkout), sync them into DB cart
+    if ((!cart.items || cart.items.length === 0) && data.items && data.items.length > 0) {
+      for (const item of data.items) {
+        const targetVariantId = item.variantId || item.id;
+        if (targetVariantId) {
+          const qty = item.quantity || (item as any).qty || 1;
+          await this.cartService.addItem(userId, targetVariantId, qty);
+        }
+      }
+      cart = await this.cartService.getCart(userId);
+    }
+
     if (!cart.items || cart.items.length === 0) {
       throw new AppError("Cannot create an order from an empty cart", 400);
     }

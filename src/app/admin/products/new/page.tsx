@@ -80,6 +80,9 @@ export default function AddProductPage() {
       variants,
     };
 
+    console.log("=== PRODUCT PUBLISH DEBUG ===");
+    console.log("PAYLOAD:", JSON.stringify(payload, null, 2));
+
     createMutation.mutate(payload, {
       onSuccess: (createdProduct) => {
         showToast(`Product "${createdProduct.name}" ${publish ? "published" : "saved as draft"} successfully!`);

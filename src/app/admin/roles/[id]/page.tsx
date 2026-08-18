@@ -1,168 +1,225 @@
 "use client";
 
-import React, { use, useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, ShieldCheck, Lock } from "lucide-react";
-import { RolesProvider, useRoles } from "@/components/admin/roles/RolesContext";
-import { RoleForm } from "@/components/admin/roles/RoleForm";
-import { PermissionMatrix } from "@/components/admin/roles/PermissionMatrix";
-import { UserAssignmentList } from "@/components/admin/roles/UserAssignmentList";
-import { RoleStatus } from "@/types/roles";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ArrowLeft, Edit, ShieldCheck, UserPlus, Eye } from "lucide-react";
+import {
+  RoleDetails,
+  AssignedUsers,
+  PermissionGroup,
+  RoleForm,
+  AssignUserDialog,
+  ConfirmDialog,
+  RoleConfirmActionType,
+} from "@/components/admin/roles";
+import {
+  mockRolesList,
+  mockStaffUsersList,
+  ALL_PERMISSION_GROUPS,
+  AdminRoleDetail,
+  StaffUserItem,
+} from "@/data/mockRolesData";
+import { AdminToast } from "@/components/admin/ui";
 
-function EditRoleContent({ roleId }: { roleId: string }) {
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function AdminRoleDetailPage({ params }: PageProps) {
+  const { id } = React.use(params);
   const router = useRouter();
-  const { roles, updateRole } = useRoles();
-  const role = roles.find((r) => r.id === roleId);
+  const searchParams = useSearchParams();
+  const initialEditMode = searchParams.get("edit") === "true";
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [color, setColor] = useState("#F57C00");
-  const [iconName, setIconName] = useState("ShieldCheck");
-  const [status, setStatus] = useState<RoleStatus>("ACTIVE");
-  const [permissions, setPermissions] = useState<Record<string, string[]>>({});
-  const [activeTab, setActiveTab] = useState<"matrix" | "users" | "details">("matrix");
+  const initialRole = mockRolesList.find((r) => r.id === id) || mockRolesList[0];
+  const [role, setRole] = useState<AdminRoleDetail>(initialRole);
+  const [staffUsers, setStaffUsers] = useState<StaffUserItem[]>(mockStaffUsersList);
+  const [isEditing, setIsEditing] = useState(initialEditMode);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (role) {
-      setName(role.name);
-      setDescription(role.description);
-      setColor(role.color);
-      setIconName(role.iconName);
-      setStatus(role.status);
-      setPermissions(role.permissions || {});
+  // Dialogs State
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    actionType: RoleConfirmActionType | null;
+  }>({
+    isOpen: false,
+    actionType: null,
+  });
+
+  const isSuperAdmin = role.id === "role_super_admin";
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  const assignedStaff = staffUsers.filter(
+    (u) => u.roleId === role.id || u.roleName === role.name
+  );
+
+  const handleSaveRoleForm = (updatedData: Partial<AdminRoleDetail>) => {
+    if (isSuperAdmin) {
+      showToast("Super Admin permissions are fixed system defaults and cannot be altered.");
+      setIsEditing(false);
+      return;
     }
-  }, [role]);
 
-  if (!role) {
-    return (
-      <div className="p-12 text-center space-y-4">
-        <h2 className="text-xl font-bold text-stone-800">Role Not Found</h2>
-        <p className="text-sm text-stone-500">The role with ID "{roleId}" does not exist.</p>
-        <Link href="/admin/roles" className="inline-block text-xs font-bold text-amber-700 underline">
-          Return to Roles Dashboard
-        </Link>
-      </div>
+    setRole((prev) => ({
+      ...prev,
+      ...updatedData,
+      updatedAt: new Date().toISOString().split("T")[0],
+    }));
+
+    setIsEditing(false);
+    showToast(`Role "${updatedData.name || role.name}" permissions updated successfully.`);
+  };
+
+  const handleSaveAssignments = (selectedUserIds: string[]) => {
+    setStaffUsers((prev) =>
+      prev.map((u) => {
+        if (selectedUserIds.includes(u.id)) {
+          return { ...u, roleId: role.id, roleName: role.name };
+        }
+        if (u.roleId === role.id && !selectedUserIds.includes(u.id)) {
+          return { ...u, roleId: "role_staff", roleName: "Staff / Moderator" };
+        }
+        return u;
+      })
     );
-  }
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateRole(roleId, {
-      name,
-      description,
-      color,
-      iconName,
-      status,
-      permissions,
-    });
-    router.push("/admin/roles");
+    setRole((prev) => ({ ...prev, usersCount: selectedUserIds.length }));
+    showToast("Assigned staff members updated successfully.");
+  };
+
+  const handleRemoveUser = (user: StaffUserItem) => {
+    if (isSuperAdmin && assignedStaff.length <= 1) {
+      showToast("Cannot remove the last remaining Super Admin user.");
+      return;
+    }
+
+    setStaffUsers((prev) =>
+      prev.map((u) =>
+        u.id === user.id ? { ...u, roleId: "role_staff", roleName: "Staff / Moderator" } : u
+      )
+    );
+    setRole((prev) => ({ ...prev, usersCount: Math.max(0, prev.usersCount - 1) }));
+    showToast(`Removed "${user.name}" from role "${role.name}".`);
   };
 
   return (
-    <form onSubmit={handleSave} className="p-6 space-y-6 max-w-5xl mx-auto pb-24">
-      <div className="flex items-center justify-between border-b border-stone-200 pb-4">
+    <div className="space-y-6 pb-12">
+      <AdminToast message={toastMsg} onClose={() => setToastMsg(null)} />
+
+      {/* Header Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200">
         <div className="flex items-center gap-3">
-          <Link href="/admin/roles" className="p-2 text-stone-500 hover:text-stone-900 hover:bg-stone-100 rounded-lg">
-            <ArrowLeft className="w-5 h-5" />
+          <Link
+            href="/admin/roles"
+            className="p-2 rounded-xl bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 shadow-2xs transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-amber-700" />
-              <h1 className="text-xl font-bold text-stone-900">{role.name}</h1>
-              {role.isSystemRole && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-extrabold bg-stone-100 text-stone-600 rounded border border-stone-200">
-                  <Lock className="w-3 h-3" /> System Managed
-                </span>
-              )}
+              <h1 className="text-xl font-extrabold text-stone-900 font-display">
+                {role.name}
+              </h1>
             </div>
-            <p className="text-xs text-stone-500">ID: {role.id} • Created {role.createdAt}</p>
+            <p className="text-xs text-stone-500 mt-0.5">
+              Role Profile & Permission Matrix Scope • Role ID: <span className="font-mono">{role.id}</span>
+            </p>
           </div>
         </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-stone-200 text-xs font-semibold">
-        <button
-          type="button"
-          onClick={() => setActiveTab("matrix")}
-          className={`pb-2.5 px-3 border-b-2 transition-all ${
-            activeTab === "matrix" ? "border-amber-600 text-amber-900 font-bold" : "border-transparent text-stone-500 hover:text-stone-900"
-          }`}
-        >
-          Permissions Matrix
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("users")}
-          className={`pb-2.5 px-3 border-b-2 transition-all ${
-            activeTab === "users" ? "border-amber-600 text-amber-900 font-bold" : "border-transparent text-stone-500 hover:text-stone-900"
-          }`}
-        >
-          Assigned Users ({role.usersCount})
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("details")}
-          className={`pb-2.5 px-3 border-b-2 transition-all ${
-            activeTab === "details" ? "border-amber-600 text-amber-900 font-bold" : "border-transparent text-stone-500 hover:text-stone-900"
-          }`}
-        >
-          Role Settings
-        </button>
-      </div>
-
-      {activeTab === "matrix" && (
-        <PermissionMatrix permissions={permissions} onChange={setPermissions} />
-      )}
-
-      {activeTab === "users" && (
-        <UserAssignmentList roleId={roleId} roleName={role.name} />
-      )}
-
-      {activeTab === "details" && (
-        <RoleForm
-          name={name}
-          setName={setName}
-          description={description}
-          setDescription={setDescription}
-          color={color}
-          setColor={setColor}
-          iconName={iconName}
-          setIconName={setIconName}
-          status={status}
-          setStatus={setStatus}
-        />
-      )}
-
-      {/* Sticky Bottom Save Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 bg-white/90 backdrop-blur-md border-t border-stone-200 px-6 py-3 shadow-lg">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <span className="text-xs font-semibold text-stone-500">
-            Editing role configuration for {role.name}
-          </span>
-          <div className="flex items-center gap-3">
-            <Link href="/admin/roles" className="px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 rounded-lg">
-              Cancel
-            </Link>
+        <div className="flex items-center gap-2">
+          {!isEditing ? (
             <button
-              type="submit"
-              className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-linear-to-r from-amber-600 to-amber-800 hover:from-amber-700 hover:to-amber-900 rounded-lg shadow-md transition-all active:scale-95"
+              type="button"
+              disabled={isSuperAdmin}
+              onClick={() => {
+                if (isSuperAdmin) {
+                  showToast("Super Admin permissions cannot be modified.");
+                } else {
+                  setIsEditing(true);
+                }
+              }}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white text-xs font-bold shadow-md transition-colors cursor-pointer"
             >
-              <Save className="w-4 h-4" /> Save Changes
+              <Edit className="w-4 h-4" />
+              <span>Edit Permissions</span>
             </button>
-          </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsEditing(false)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+            >
+              <Eye className="w-4 h-4" />
+              <span>View Overview</span>
+            </button>
+          )}
         </div>
       </div>
-    </form>
-  );
-}
 
-export default function EditRolePage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
-  return (
-    <RolesProvider>
-      <EditRoleContent roleId={resolvedParams.id} />
-    </RolesProvider>
+      {isEditing ? (
+        /* Edit Mode Form */
+        <RoleForm
+          initialRole={role}
+          onSubmit={handleSaveRoleForm}
+          onCancel={() => setIsEditing(false)}
+          isEditMode={true}
+        />
+      ) : (
+        /* View Mode Overview */
+        <div className="space-y-6">
+          {/* Role Header Info */}
+          <RoleDetails role={role} />
+
+          {/* Assigned Staff Users */}
+          <AssignedUsers
+            users={assignedStaff}
+            onOpenAssignDialog={() => setAssignDialogOpen(true)}
+            onRemoveUser={handleRemoveUser}
+            isSuperAdmin={isSuperAdmin}
+          />
+
+          {/* Permissions Matrix */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold text-stone-900 font-display">Active Permission Scopes</h2>
+              <span className="text-xs text-amber-700 font-bold bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200">
+                {role.permissions.length} Granted Permissions
+              </span>
+            </div>
+
+            <div className="space-y-4">
+              {ALL_PERMISSION_GROUPS.map((group) => (
+                <PermissionGroup
+                  key={group.id}
+                  group={group}
+                  selectedPermissionIds={role.permissions}
+                  onTogglePermission={() => {}}
+                  onSelectAllGroup={() => {}}
+                  onClearAllGroup={() => {}}
+                  disabled={true}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Users Modal */}
+      <AssignUserDialog
+        isOpen={assignDialogOpen}
+        roleName={role.name}
+        allStaffUsers={staffUsers}
+        currentAssignedUserIds={assignedStaff.map((u) => u.id)}
+        onSaveAssignments={handleSaveAssignments}
+        onClose={() => setAssignDialogOpen(false)}
+      />
+    </div>
   );
 }

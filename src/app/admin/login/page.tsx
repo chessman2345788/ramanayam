@@ -29,10 +29,27 @@ function LoginForm() {
     }
 
     try {
-      await login({ email, password, rememberMe });
+      const user = await login({ email, password, rememberMe });
+      if (user && user.role !== "ADMIN") {
+        setErrorMessage("Access Denied: Your account does not have Admin Portal permissions.");
+        return;
+      }
       router.push(decodeURIComponent(returnUrl));
     } catch (err: any) {
-      setErrorMessage(err.message || "Invalid credentials. Please try again.");
+      const status = err.response?.status;
+      if (status === 401) {
+        setErrorMessage("Invalid credentials. Please verify your email and password.");
+      } else if (status === 403) {
+        setErrorMessage("Access Forbidden: Your account is disabled or lacks admin privileges.");
+      } else if (status === 429) {
+        setErrorMessage("Too many login attempts. Please wait a few minutes and try again.");
+      } else if (status >= 500) {
+        setErrorMessage("Server error encountered. Please try again later.");
+      } else if (err.message && err.message.includes("Network")) {
+        setErrorMessage("Network error: Unable to reach the authentication server.");
+      } else {
+        setErrorMessage(err.message || "Authentication failed. Please try again.");
+      }
     }
   };
 

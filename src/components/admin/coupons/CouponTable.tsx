@@ -2,7 +2,17 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { MoreVertical, Eye, Copy, Trash2, Power, Tag } from "lucide-react";
+import {
+  MoreVertical,
+  Eye,
+  Edit,
+  Copy,
+  Power,
+  Trash2,
+  Users,
+  CheckCircle2,
+  Tag,
+} from "lucide-react";
 import { AdminCouponDetail, CouponStatus } from "@/data/mockCouponsData";
 import { CouponStatusBadge } from "./CouponStatusBadge";
 
@@ -10,233 +20,175 @@ interface CouponTableProps {
   coupons: AdminCouponDetail[];
   onToggleStatus: (id: string, currentStatus: CouponStatus) => void;
   onDuplicateCoupon: (coupon: AdminCouponDetail) => void;
-  onDeleteCoupon: (id: string) => void;
+  onDeleteModal: (coupon: AdminCouponDetail) => void;
+  onViewUsageModal: (coupon: AdminCouponDetail) => void;
 }
 
 export function CouponTable({
   coupons,
   onToggleStatus,
   onDuplicateCoupon,
-  onDeleteCoupon,
+  onDeleteModal,
+  onViewUsageModal,
 }: CouponTableProps) {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
-  const formatDiscountLabel = (coupon: AdminCouponDetail) => {
+  const formatDiscountDisplay = (coupon: AdminCouponDetail) => {
     if (coupon.discountType === "PERCENTAGE") return `${coupon.value}% OFF`;
     if (coupon.discountType === "FIXED_AMOUNT") return `₹${coupon.value} OFF`;
-    if (coupon.discountType === "FREE_SHIPPING") return "FREE SHIPPING";
-    return "BUY X GET Y";
+    if (coupon.discountType === "PRODUCT_SPECIFIC") return `₹${coupon.value} OFF (Product)`;
+    if (coupon.discountType === "CATEGORY_SPECIFIC") return `${coupon.value}% OFF (Category)`;
+    return "FREE SHIPPING";
+  };
+
+  const getDiscountTypeLabel = (coupon: AdminCouponDetail) => {
+    if (coupon.discountType === "PERCENTAGE") return "Percentage";
+    if (coupon.discountType === "FIXED_AMOUNT") return "Fixed Amount";
+    if (coupon.discountType === "PRODUCT_SPECIFIC") return "Product Specific";
+    if (coupon.discountType === "CATEGORY_SPECIFIC") return "Category Specific";
+    return "Free Shipping";
   };
 
   return (
-    <div
-      style={{
-        background: "#FFFFFF",
-        borderRadius: 16,
-        border: "1px solid rgba(0,0,0,0.06)",
-        boxShadow: "0 2px 12px rgba(0,0,0,0.03)",
-        overflow: "hidden",
-      }}
-    >
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 13 }}>
+    <div className="bg-white rounded-2xl border border-stone-200 shadow-2xs overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-xs border-collapse">
           <thead>
-            <tr style={{ borderBottom: "1px solid rgba(0,0,0,0.08)", background: "#FAF8F3", color: "#666666" }}>
-              <th style={{ padding: "12px 14px", fontWeight: 600 }}>Coupon Code</th>
-              <th style={{ padding: "12px 14px", fontWeight: 600 }}>Campaign Name</th>
-              <th style={{ padding: "12px 14px", fontWeight: 600 }}>Discount</th>
-              <th style={{ padding: "12px 14px", fontWeight: 600 }}>Usage</th>
-              <th style={{ padding: "12px 14px", fontWeight: 600 }}>Expiry</th>
-              <th style={{ padding: "12px 14px", fontWeight: 600 }}>Status</th>
-              <th style={{ padding: "12px 14px", fontWeight: 600 }}>Created By</th>
-              <th style={{ padding: "12px 14px", fontWeight: 600, textAlign: "right" }}>Actions</th>
+            <tr className="border-b border-stone-200 bg-stone-50/80 text-stone-500 font-semibold uppercase tracking-wider">
+              <th className="p-3.5">Coupon Code</th>
+              <th className="p-3.5">Discount</th>
+              <th className="p-3.5">Type</th>
+              <th className="p-3.5">Min Order</th>
+              <th className="p-3.5">Usage</th>
+              <th className="p-3.5">Usage Limit</th>
+              <th className="p-3.5">Start Date</th>
+              <th className="p-3.5">Expiry Date</th>
+              <th className="p-3.5">Status</th>
+              <th className="p-3.5 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-stone-100">
             {coupons.length === 0 ? (
               <tr>
-                <td colSpan={8} style={{ padding: 40, textAlign: "center", color: "#999999" }}>
-                  No coupons found matching your search or filters.
+                <td colSpan={10} className="p-8 text-center text-stone-500 text-xs">
+                  No promotional coupons match your search or filter settings.
                 </td>
               </tr>
             ) : (
               coupons.map((c) => {
                 const isMenuOpen = activeMenuId === c.id;
-                const usagePercent = Math.min(100, Math.round((c.usageCount / c.usageLimit) * 100));
+                const usagePercent = Math.round((c.usageCount / (c.usageLimit || 1)) * 100);
 
                 return (
-                  <tr
-                    key={c.id}
-                    style={{
-                      borderBottom: "1px solid rgba(0,0,0,0.04)",
-                      transition: "background 0.15s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "rgba(245,124,0,0.02)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "transparent";
-                    }}
-                  >
+                  <tr key={c.id} className="hover:bg-amber-50/20 transition-colors">
                     {/* Code */}
-                    <td style={{ padding: "12px 14px" }}>
-                      <span
-                        style={{
-                          fontWeight: 700,
-                          fontFamily: "var(--font-jetbrains, monospace)",
-                          fontSize: 13,
-                          color: "#F57C00",
-                          background: "rgba(245,124,0,0.08)",
-                          padding: "4px 8px",
-                          borderRadius: 6,
-                          letterSpacing: "0.03em",
-                        }}
-                      >
-                        {c.code}
-                      </span>
-                    </td>
-
-                    {/* Campaign Name & Description */}
-                    <td style={{ padding: "12px 14px", maxWidth: 220 }}>
-                      <div style={{ fontWeight: 600, color: "#171717", lineHeight: "1.3" }}>{c.campaignName}</div>
-                      <div style={{ fontSize: 11, color: "#666666", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {c.description}
+                    <td className="p-3.5 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-extrabold text-amber-800 bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded-lg text-xs">
+                          {c.code}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-stone-500 truncate max-w-[160px] mt-0.5">
+                        {c.campaignName}
                       </div>
                     </td>
 
-                    {/* Discount Badge */}
-                    <td style={{ padding: "12px 14px" }}>
-                      <span
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: "#701A75",
-                          background: "rgba(112,26,117,0.08)",
-                          padding: "3px 8px",
-                          borderRadius: 6,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                        }}
-                      >
-                        <Tag size={12} />
-                        {formatDiscountLabel(c)}
-                      </span>
+                    {/* Discount */}
+                    <td className="p-3.5 whitespace-nowrap font-bold text-stone-900">
+                      {formatDiscountDisplay(c)}
                     </td>
 
-                    {/* Usage Meter */}
-                    <td style={{ padding: "12px 14px", minWidth: 130 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#666666", marginBottom: 3 }}>
-                        <span style={{ fontWeight: 600, color: "#171717" }}>{c.usageCount}</span>
-                        <span>/ {c.usageLimit}</span>
+                    {/* Type */}
+                    <td className="p-3.5 whitespace-nowrap text-stone-600 font-medium">
+                      {getDiscountTypeLabel(c)}
+                    </td>
+
+                    {/* Minimum Order */}
+                    <td className="p-3.5 whitespace-nowrap font-semibold text-stone-800">
+                      ₹{c.minOrderValue.toLocaleString("en-IN")}
+                    </td>
+
+                    {/* Usage */}
+                    <td className="p-3.5 whitespace-nowrap">
+                      <div className="font-bold text-stone-900">
+                        {c.usageCount.toLocaleString("en-IN")}
                       </div>
-                      <div style={{ height: 6, background: "#FAF8F3", borderRadius: 3, overflow: "hidden" }}>
+                      <div className="w-16 h-1.5 bg-stone-100 rounded-full overflow-hidden mt-1">
                         <div
-                          style={{
-                            height: "100%",
-                            width: `${usagePercent}%`,
-                            background: usagePercent >= 100 ? "#DC2626" : usagePercent >= 80 ? "#D97706" : "#F57C00",
-                            borderRadius: 3,
-                          }}
+                          className={`h-full rounded-full ${
+                            usagePercent >= 100 ? "bg-rose-500" : "bg-emerald-500"
+                          }`}
+                          style={{ width: `${Math.min(usagePercent, 100)}%` }}
                         />
                       </div>
                     </td>
 
+                    {/* Usage Limit */}
+                    <td className="p-3.5 whitespace-nowrap text-stone-600 font-medium">
+                      <div>Total: {c.usageLimit.toLocaleString("en-IN")}</div>
+                      <div className="text-[10px] text-stone-400">
+                        Max {c.perCustomerLimit}/customer
+                      </div>
+                    </td>
+
+                    {/* Start Date */}
+                    <td className="p-3.5 whitespace-nowrap text-stone-600 text-[11px]">
+                      {c.startDate}
+                    </td>
+
                     {/* Expiry Date */}
-                    <td style={{ padding: "12px 14px", fontSize: 12, color: "#666666", whiteSpace: "nowrap" }}>
+                    <td className="p-3.5 whitespace-nowrap text-stone-600 text-[11px]">
                       {c.endDate}
                     </td>
 
-                    {/* Status Badge */}
-                    <td style={{ padding: "12px 14px" }}>
+                    {/* Status */}
+                    <td className="p-3.5 whitespace-nowrap">
                       <CouponStatusBadge status={c.status} />
                     </td>
 
-                    {/* Created By */}
-                    <td style={{ padding: "12px 14px", fontSize: 12, color: "#666666" }}>
-                      {c.createdBy}
-                    </td>
+                    {/* Actions */}
+                    <td className="p-3.5 text-right whitespace-nowrap relative">
+                      <div className="flex items-center justify-end gap-1">
+                        <Link
+                          href={`/admin/coupons/${c.id}`}
+                          title="View Details"
+                          className="p-1.5 text-stone-500 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Link>
 
-                    {/* Actions Menu */}
-                    <td style={{ padding: "12px 14px", textAlign: "right", position: "relative" }}>
-                      <button
-                        type="button"
-                        onClick={() => setActiveMenuId(isMenuOpen ? null : c.id)}
-                        style={{
-                          border: "none",
-                          background: "transparent",
-                          padding: 6,
-                          borderRadius: 6,
-                          cursor: "pointer",
-                          color: "#666666",
-                        }}
-                      >
-                        <MoreVertical size={16} />
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => setActiveMenuId(isMenuOpen ? null : c.id)}
+                          className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+                      </div>
 
+                      {/* Action Dropdown */}
                       {isMenuOpen && (
                         <>
                           <div
                             onClick={() => setActiveMenuId(null)}
-                            style={{ position: "fixed", inset: 0, zIndex: 40 }}
+                            className="fixed inset-0 z-40"
                           />
-                          <div
-                            style={{
-                              position: "absolute",
-                              right: 14,
-                              top: "80%",
-                              width: 170,
-                              background: "#FFFFFF",
-                              borderRadius: 10,
-                              border: "1px solid rgba(0,0,0,0.08)",
-                              boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
-                              padding: 4,
-                              zIndex: 50,
-                              textAlign: "left",
-                            }}
-                          >
+                          <div className="absolute right-3 top-10 w-44 bg-white rounded-xl border border-stone-200 shadow-xl p-1 z-50 text-left animate-in fade-in zoom-in-95 duration-100 space-y-0.5">
                             <Link
                               href={`/admin/coupons/${c.id}`}
                               onClick={() => setActiveMenuId(null)}
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 8,
-                                padding: "7px 10px",
-                                borderRadius: 6,
-                                fontSize: 12,
-                                color: "#171717",
-                                textDecoration: "none",
-                                fontWeight: 500,
-                              }}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 rounded-lg transition-colors"
                             >
-                              <Eye size={14} style={{ color: "#F57C00" }} /> View Details
+                              <Eye className="w-3.5 h-3.5 text-amber-600" /> View Campaign
                             </Link>
 
-                            <button
-                              type="button"
-                              onClick={() => {
-                                onToggleStatus(c.id, c.status);
-                                setActiveMenuId(null);
-                              }}
-                              style={{
-                                width: "100%",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 8,
-                                padding: "7px 10px",
-                                borderRadius: 6,
-                                border: "none",
-                                background: "transparent",
-                                fontSize: 12,
-                                color: c.status === "ACTIVE" ? "#DC2626" : "#16A34A",
-                                fontWeight: 500,
-                                cursor: "pointer",
-                              }}
+                            <Link
+                              href={`/admin/coupons/${c.id}?edit=true`}
+                              onClick={() => setActiveMenuId(null)}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 rounded-lg transition-colors"
                             >
-                              <Power size={14} />
-                              {c.status === "ACTIVE" ? "Disable Code" : "Activate Code"}
-                            </button>
+                              <Edit className="w-3.5 h-3.5 text-sky-600" /> Edit Coupon
+                            </Link>
 
                             <button
                               type="button"
@@ -244,48 +196,45 @@ export function CouponTable({
                                 onDuplicateCoupon(c);
                                 setActiveMenuId(null);
                               }}
-                              style={{
-                                width: "100%",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 8,
-                                padding: "7px 10px",
-                                borderRadius: 6,
-                                border: "none",
-                                background: "transparent",
-                                fontSize: 12,
-                                color: "#171717",
-                                fontWeight: 500,
-                                cursor: "pointer",
-                              }}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 rounded-lg transition-colors cursor-pointer"
                             >
-                              <Copy size={14} style={{ color: "#701A75" }} /> Duplicate
+                              <Copy className="w-3.5 h-3.5 text-purple-600" /> Duplicate
                             </button>
 
                             <button
                               type="button"
                               onClick={() => {
-                                onDeleteCoupon(c.id);
+                                onViewUsageModal(c);
                                 setActiveMenuId(null);
                               }}
-                              style={{
-                                width: "100%",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 8,
-                                padding: "7px 10px",
-                                borderRadius: 6,
-                                border: "none",
-                                background: "transparent",
-                                fontSize: 12,
-                                color: "#DC2626",
-                                fontWeight: 500,
-                                cursor: "pointer",
-                                borderTop: "1px solid rgba(0,0,0,0.05)",
-                                marginTop: 4,
-                              }}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 rounded-lg transition-colors cursor-pointer"
                             >
-                              <Trash2 size={14} /> Delete
+                              <Users className="w-3.5 h-3.5 text-emerald-600" /> View Usage
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onToggleStatus(c.id, c.status);
+                                setActiveMenuId(null);
+                              }}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <Power className="w-3.5 h-3.5" />
+                              <span>{c.status === "ACTIVE" ? "Disable" : "Enable"}</span>
+                            </button>
+
+                            <div className="my-1 border-t border-stone-100" />
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onDeleteModal(c);
+                                setActiveMenuId(null);
+                              }}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" /> Delete
                             </button>
                           </div>
                         </>

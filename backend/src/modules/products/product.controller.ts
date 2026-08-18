@@ -188,4 +188,30 @@ export class ProductController {
     await this.service.removeProductFromCollection(productId, collectionId, user);
     sendSuccess(res, "Product removed from collection successfully");
   };
+
+  // ==========================================
+  // CSV Import Operations
+  // ==========================================
+
+  validateCsvImport = async (req: Request, res: Response): Promise<void> => {
+    const { rows } = req.body;
+    if (!Array.isArray(rows)) {
+      sendSuccess(res, "CSV validation requires an array of product rows", { summary: { totalRows: 0, validRows: 0, invalidRows: 0, duplicateSkus: 0, missingCategories: 0 }, errors: [], validProducts: [] }, 400);
+      return;
+    }
+
+    const result = await this.service.validateCsvImport(rows);
+    sendSuccess(res, "CSV dry-run validation completed successfully", result);
+  };
+
+  executeCsvImport = async (req: Request, res: Response): Promise<void> => {
+    const { validProducts } = req.body;
+    if (!Array.isArray(validProducts) || validProducts.length === 0) {
+      sendSuccess(res, "No valid products provided for import execution", { createdCount: 0, failedCount: 0 }, 400);
+      return;
+    }
+
+    const result = await this.service.executeCsvImport(validProducts);
+    sendSuccess(res, `Batch import executed successfully: ${result.createdCount} products created`, result);
+  };
 }

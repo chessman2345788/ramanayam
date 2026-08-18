@@ -103,7 +103,14 @@ export class CartService {
     };
   }
 
-  async addItem(userId: string, variantId: string, quantity: number): Promise<CartResponse> {
+  async addItem(
+    userId: string,
+    variantIdInput: string | { variantId: string; quantity?: number },
+    quantityInput = 1,
+  ): Promise<CartResponse> {
+    const variantId = typeof variantIdInput === "object" ? variantIdInput.variantId : variantIdInput;
+    const quantity = typeof variantIdInput === "object" ? variantIdInput.quantity || 1 : quantityInput;
+
     const variant = await this.repository.findVariantDetails(variantId);
     if (!variant || !variant.isActive) {
       throw new AppError("Product variant not found or inactive", 404);

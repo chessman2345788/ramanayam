@@ -195,9 +195,12 @@ export function Sidebar() {
             <div className="p-3 border-t border-black/6 bg-[#FAF8F3]">
               <button
                 type="button"
-                onClick={() => {
+                onClick={async () => {
                   setMobileOpen(false);
-                  alert("Logged out of Admin Portal");
+                  try {
+                    await useAuthStore.getState().logout();
+                  } catch {}
+                  window.location.href = "/admin/login";
                 }}
                 className="w-full flex items-center h-10 px-3 gap-3 rounded-lg text-[#C53030] hover:bg-[#C53030]/10 transition-colors font-medium text-xs cursor-pointer"
               >

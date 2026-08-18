@@ -1,20 +1,26 @@
 "use client";
 
 import React from "react";
-import { Filter, Tag, Users, ArrowUpDown } from "lucide-react";
-import { CouponStatus, DiscountType, CustomerTypeEligibility } from "@/data/mockCouponsData";
+import { Filter, Tag, Calendar, Users, ArrowUpDown, RotateCcw } from "lucide-react";
+import { CouponStatus, DiscountType } from "@/data/mockCouponsData";
 
 export type CouponSortOption = "newest" | "oldest" | "most_used" | "highest_discount";
+export type DateRangeOption = "ALL" | "7d" | "30d" | "90d";
+export type UsageFilterOption = "ALL" | "HIGH_USAGE" | "REACHED_LIMIT";
 
 interface CouponFiltersProps {
   statusFilter: CouponStatus | "ALL";
   onStatusChange: (status: CouponStatus | "ALL") => void;
-  typeFilter: DiscountType | "FESTIVAL" | "ALL";
-  onTypeChange: (type: DiscountType | "FESTIVAL" | "ALL") => void;
-  customerFilter: CustomerTypeEligibility | "ALL";
-  onCustomerChange: (cust: CustomerTypeEligibility | "ALL") => void;
+  typeFilter: DiscountType | "ALL";
+  onTypeChange: (type: DiscountType | "ALL") => void;
+  dateRangeFilter: DateRangeOption;
+  onDateRangeChange: (val: DateRangeOption) => void;
+  usageFilter: UsageFilterOption;
+  onUsageChange: (val: UsageFilterOption) => void;
   sortOption: CouponSortOption;
   onSortChange: (sort: CouponSortOption) => void;
+  onResetFilters?: () => void;
+  hasActiveFilters?: boolean;
 }
 
 export function CouponFilters({
@@ -22,110 +28,105 @@ export function CouponFilters({
   onStatusChange,
   typeFilter,
   onTypeChange,
-  customerFilter,
-  onCustomerChange,
+  dateRangeFilter,
+  onDateRangeChange,
+  usageFilter,
+  onUsageChange,
   sortOption,
   onSortChange,
+  onResetFilters,
+  hasActiveFilters,
 }: CouponFiltersProps) {
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10 }}>
+    <div className="flex flex-wrap items-center gap-2.5">
       {/* Status Filter */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <Filter size={14} style={{ color: "#F57C00" }} />
+      <div className="flex items-center gap-1.5 bg-stone-50 px-2.5 py-1.5 rounded-xl border border-stone-200 text-xs font-medium">
+        <Filter className="w-3.5 h-3.5 text-amber-600" />
         <select
           value={statusFilter}
           onChange={(e) => onStatusChange(e.target.value as CouponStatus | "ALL")}
-          style={{
-            padding: "7px 12px",
-            borderRadius: 8,
-            border: "1px solid rgba(0,0,0,0.12)",
-            background: "#FFFFFF",
-            fontSize: 13,
-            color: "#171717",
-            outline: "none",
-            cursor: "pointer",
-          }}
+          className="bg-transparent text-stone-800 font-semibold outline-none cursor-pointer"
         >
           <option value="ALL">All Statuses</option>
           <option value="ACTIVE">Active</option>
           <option value="SCHEDULED">Scheduled</option>
           <option value="EXPIRED">Expired</option>
           <option value="DISABLED">Disabled</option>
+          <option value="DRAFT">Draft</option>
         </select>
       </div>
 
       {/* Discount Type Filter */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <Tag size={14} style={{ color: "#701A75" }} />
+      <div className="flex items-center gap-1.5 bg-stone-50 px-2.5 py-1.5 rounded-xl border border-stone-200 text-xs font-medium">
+        <Tag className="w-3.5 h-3.5 text-purple-600" />
         <select
           value={typeFilter}
-          onChange={(e) => onTypeChange(e.target.value as DiscountType | "FESTIVAL" | "ALL")}
-          style={{
-            padding: "7px 12px",
-            borderRadius: 8,
-            border: "1px solid rgba(0,0,0,0.12)",
-            background: "#FFFFFF",
-            fontSize: 13,
-            color: "#171717",
-            outline: "none",
-            cursor: "pointer",
-          }}
+          onChange={(e) => onTypeChange(e.target.value as DiscountType | "ALL")}
+          className="bg-transparent text-stone-800 font-semibold outline-none cursor-pointer"
         >
           <option value="ALL">All Discount Types</option>
           <option value="PERCENTAGE">Percentage (%)</option>
           <option value="FIXED_AMOUNT">Fixed Amount (₹)</option>
-          <option value="FREE_SHIPPING">Free Shipping</option>
-          <option value="FESTIVAL">Festival Special Offer</option>
+          <option value="PRODUCT_SPECIFIC">Product Specific</option>
+          <option value="CATEGORY_SPECIFIC">Category Specific</option>
         </select>
       </div>
 
-      {/* Customer Type Filter */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <Users size={14} style={{ color: "#16A34A" }} />
+      {/* Date Range Filter */}
+      <div className="flex items-center gap-1.5 bg-stone-50 px-2.5 py-1.5 rounded-xl border border-stone-200 text-xs font-medium">
+        <Calendar className="w-3.5 h-3.5 text-sky-600" />
         <select
-          value={customerFilter}
-          onChange={(e) => onCustomerChange(e.target.value as CustomerTypeEligibility | "ALL")}
-          style={{
-            padding: "7px 12px",
-            borderRadius: 8,
-            border: "1px solid rgba(0,0,0,0.12)",
-            background: "#FFFFFF",
-            fontSize: 13,
-            color: "#171717",
-            outline: "none",
-            cursor: "pointer",
-          }}
+          value={dateRangeFilter}
+          onChange={(e) => onDateRangeChange(e.target.value as DateRangeOption)}
+          className="bg-transparent text-stone-800 font-semibold outline-none cursor-pointer"
         >
-          <option value="ALL">All Customer Types</option>
-          <option value="NEW">New Devotees Only</option>
-          <option value="RETURNING">Returning Buyers</option>
-          <option value="VIP">VIP Patrons</option>
+          <option value="ALL">All Date Ranges</option>
+          <option value="7d">Last 7 Days</option>
+          <option value="30d">Last 30 Days</option>
+          <option value="90d">Last 90 Days</option>
         </select>
       </div>
 
-      {/* Sort Option Dropdown */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <ArrowUpDown size={14} style={{ color: "#D4AF37" }} />
+      {/* Usage Filter */}
+      <div className="flex items-center gap-1.5 bg-stone-50 px-2.5 py-1.5 rounded-xl border border-stone-200 text-xs font-medium">
+        <Users className="w-3.5 h-3.5 text-amber-700" />
+        <select
+          value={usageFilter}
+          onChange={(e) => onUsageChange(e.target.value as UsageFilterOption)}
+          className="bg-transparent text-stone-800 font-semibold outline-none cursor-pointer"
+        >
+          <option value="ALL">All Usages</option>
+          <option value="HIGH_USAGE">High Usage (&gt;50%)</option>
+          <option value="REACHED_LIMIT">Reached Limit (100%)</option>
+        </select>
+      </div>
+
+      {/* Sort Option */}
+      <div className="flex items-center gap-1.5 bg-stone-50 px-2.5 py-1.5 rounded-xl border border-stone-200 text-xs font-medium">
+        <ArrowUpDown className="w-3.5 h-3.5 text-stone-600" />
         <select
           value={sortOption}
           onChange={(e) => onSortChange(e.target.value as CouponSortOption)}
-          style={{
-            padding: "7px 12px",
-            borderRadius: 8,
-            border: "1px solid rgba(0,0,0,0.12)",
-            background: "#FFFFFF",
-            fontSize: 13,
-            color: "#171717",
-            outline: "none",
-            cursor: "pointer",
-          }}
+          className="bg-transparent text-stone-800 font-semibold outline-none cursor-pointer"
         >
-          <option value="newest">Sort: Newest First</option>
-          <option value="oldest">Sort: Oldest First</option>
-          <option value="most_used">Sort: Most Used</option>
-          <option value="highest_discount">Sort: Highest Discount</option>
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="most_used">Most Used</option>
+          <option value="highest_discount">Highest Discount</option>
         </select>
       </div>
+
+      {/* Reset Filters */}
+      {hasActiveFilters && onResetFilters && (
+        <button
+          type="button"
+          onClick={onResetFilters}
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-semibold transition-colors cursor-pointer"
+        >
+          <RotateCcw className="w-3 h-3" />
+          <span>Reset</span>
+        </button>
+      )}
     </div>
   );
 }

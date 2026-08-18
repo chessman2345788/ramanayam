@@ -137,3 +137,11 @@ export const adminReviewUpdateSchema = z.object({
     comment: z.string().max(1000).optional(),
   }),
 });
+
+export const adminAnalyticsQuerySchema = z.object({
+  query: z.object({
+    range: z.enum(["today", "yesterday", "7days", "30days", "90days", "this_year", "custom"]).optional().default("30days"),
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
+  }),
+});

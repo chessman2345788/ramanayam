@@ -8,9 +8,9 @@ import { validateRequest } from "../../components/validation";
 import { addToCartSchema, updateCartItemSchema, removeCartItemSchema } from "./cart.validator";
 
 const router = Router();
-const repository = new CartRepository(prisma);
-const service = new CartService(repository);
-const controller = new CartController(service);
+export const cartRepository = new CartRepository(prisma);
+export const cartService = new CartService(cartRepository);
+const controller = new CartController(cartService);
 
 // All cart routes require authentication
 router.use(authenticate);

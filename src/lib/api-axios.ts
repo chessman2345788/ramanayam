@@ -2,9 +2,6 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
-console.log("NEXT_PUBLIC_API_URL =", process.env.NEXT_PUBLIC_API_URL);
-console.log("API_BASE_URL =", API_BASE_URL);
-
 export const axiosClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -132,6 +129,10 @@ axiosClient.interceptors.response.use(
     }
 
     const message = error.response?.data?.message || error.message || "An unexpected API error occurred.";
-    return Promise.reject(new Error(message));
+    const apiError: any = new Error(message);
+    if (error.response) {
+      apiError.response = error.response;
+    }
+    return Promise.reject(apiError);
   }
 );

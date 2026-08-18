@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { Filter, RotateCcw, ChevronDown, Check } from "lucide-react";
 import { ProductFilterState } from "../types/product.types";
 
+import { ProductService } from "@/services/product.service";
+
 interface ProductFiltersProps {
   filters: ProductFilterState;
   onFilterChange: (newFilters: ProductFilterState) => void;
@@ -18,7 +20,16 @@ export function ProductFilters({
   activeFilterCount,
 }: ProductFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    ProductService.fetchCategoriesFromApi().then((cats) => {
+      if (cats && cats.length > 0) {
+        setCategories(cats.map((c) => ({ id: c.name, name: c.name })));
+      }
+    });
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -100,10 +111,11 @@ export function ProductFilters({
                 className="w-full h-8 px-2 bg-[#FAF8F3] border border-black/10 rounded-lg text-[#171717]"
               >
                 <option value="">All Categories</option>
-                <option value="Puja Essentials">Puja Essentials</option>
-                <option value="Incense & Fragrance">Incense & Fragrance</option>
-                <option value="Sacred Beads">Sacred Beads</option>
-                <option value="Idols & Utensils">Idols & Utensils</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
               </select>
             </div>
 

@@ -20,6 +20,7 @@ import {
   adminReviewQuerySchema,
   adminReviewParamsSchema,
   adminReviewUpdateSchema,
+  adminAnalyticsQuerySchema,
 } from "./admin.validator";
 
 const router = Router();
@@ -35,6 +36,7 @@ router.use(authorize([UserRole.ADMIN]));
 // Dashboard & Analytics
 router.get("/dashboard", controller.getDashboard);
 router.get("/stats", controller.getStats);
+router.get("/analytics/overview", validateRequest(adminAnalyticsQuerySchema), controller.getAnalyticsOverview);
 
 // User Management
 router.get("/users", validateRequest(adminUserQuerySchema), controller.getUsers);

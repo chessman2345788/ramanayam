@@ -1,160 +1,191 @@
 "use client";
 
 import React from "react";
-import { Shield, UserCheck, ShoppingBag, Package, Tag, Gift, MessageSquare, Layout, Users } from "lucide-react";
-import { RoleStatus } from "@/types/roles";
+import { ShieldCheck, CheckSquare, Square } from "lucide-react";
+import { ALL_PERMISSION_GROUPS, ALL_PERMISSION_IDS, AdminRoleDetail } from "@/data/mockRolesData";
+import { PermissionGroup } from "./PermissionGroup";
 
 interface RoleFormProps {
-  name: string;
-  setName: (v: string) => void;
-  description: string;
-  setDescription: (v: string) => void;
-  color: string;
-  setColor: (v: string) => void;
-  iconName: string;
-  setIconName: (v: string) => void;
-  status: RoleStatus;
-  setStatus: (v: RoleStatus) => void;
-  disabled?: boolean;
+  initialRole?: Partial<AdminRoleDetail>;
+  onSubmit: (roleData: Partial<AdminRoleDetail>) => void;
+  onCancel: () => void;
+  isEditMode?: boolean;
 }
 
-const colorPresets = [
-  { name: "Saffron Accent", hex: "#F57C00" },
-  { name: "Deep Maroon", hex: "#701A75" },
-  { name: "Emerald Green", hex: "#16A34A" },
-  { name: "Sky Blue", hex: "#0284C7" },
-  { name: "Amber Gold", hex: "#D97706" },
-  { name: "Rose Crimson", hex: "#BE185D" },
-  { name: "Royal Purple", hex: "#4C1D95" },
-  { name: "Slate Grey", hex: "#6B7280" },
-];
-
-const iconList = [
-  { name: "ShieldCheck", icon: Shield },
-  { name: "UserCheck", icon: UserCheck },
-  { name: "ShoppingBag", icon: ShoppingBag },
-  { name: "Package", icon: Package },
-  { name: "Tag", icon: Tag },
-  { name: "Gift", icon: Gift },
-  { name: "MessageSquare", icon: MessageSquare },
-  { name: "Layout", icon: Layout },
-  { name: "Users", icon: Users },
-];
-
 export function RoleForm({
-  name,
-  setName,
-  description,
-  setDescription,
-  color,
-  setColor,
-  iconName,
-  setIconName,
-  status,
-  setStatus,
-  disabled = false,
+  initialRole,
+  onSubmit,
+  onCancel,
+  isEditMode,
 }: RoleFormProps) {
-  return (
-    <div className="bg-white rounded-xl border border-stone-200 p-5 shadow-2xs space-y-4">
-      <h3 className="text-sm font-bold text-stone-900 pb-3 border-b border-stone-100 flex items-center gap-2">
-        <Shield className="w-4 h-4 text-amber-700" /> Role General Details
-      </h3>
+  const [name, setName] = React.useState(initialRole?.name || "");
+  const [description, setDescription] = React.useState(initialRole?.description || "");
+  const [status, setStatus] = React.useState<"ACTIVE" | "INACTIVE">(initialRole?.status || "ACTIVE");
+  const [selectedPermissions, setSelectedPermissions] = React.useState<string[]>(
+    initialRole?.permissions || []
+  );
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  const isSuperAdmin = initialRole?.id === "role_super_admin";
+
+  const handleTogglePermission = (id: string, value: boolean) => {
+    if (isSuperAdmin) return;
+    if (value) {
+      setSelectedPermissions((prev) => [...new Set([...prev, id])]);
+    } else {
+      setSelectedPermissions((prev) => prev.filter((p) => p !== id));
+    }
+  };
+
+  const handleSelectAllGroup = (groupId: string) => {
+    if (isSuperAdmin) return;
+    const group = ALL_PERMISSION_GROUPS.find((g) => g.id === groupId);
+    if (!group) return;
+    const groupIds = group.permissions.map((p) => p.id);
+    setSelectedPermissions((prev) => [...new Set([...prev, ...groupIds])]);
+  };
+
+  const handleClearAllGroup = (groupId: string) => {
+    if (isSuperAdmin) return;
+    const group = ALL_PERMISSION_GROUPS.find((g) => g.id === groupId);
+    if (!group) return;
+    const groupIds = group.permissions.map((p) => p.id);
+    setSelectedPermissions((prev) => prev.filter((id) => !groupIds.includes(id)));
+  };
+
+  const handleGlobalSelectAll = () => {
+    if (isSuperAdmin) return;
+    setSelectedPermissions([...ALL_PERMISSION_IDS]);
+  };
+
+  const handleGlobalClearAll = () => {
+    if (isSuperAdmin) return;
+    setSelectedPermissions([]);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit({
+      name,
+      description,
+      status,
+      permissions: selectedPermissions,
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Role Details Card */}
+      <div className="bg-white rounded-2xl border border-stone-200 p-5 shadow-2xs space-y-4">
+        <h2 className="text-sm font-bold text-stone-900 font-display flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-amber-600" />
+          <span>Role Information</span>
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-stone-700 mb-1">Role Name *</label>
+            <input
+              type="text"
+              required
+              disabled={isSuperAdmin}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Inventory Specialist"
+              className="w-full px-3 py-2 text-xs bg-white border border-stone-200 rounded-xl text-stone-900 focus:border-amber-600 outline-none disabled:bg-stone-100"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-stone-700 mb-1">Status</label>
+            <select
+              disabled={isSuperAdmin}
+              value={status}
+              onChange={(e) => setStatus(e.target.value as "ACTIVE" | "INACTIVE")}
+              className="w-full px-3 py-2 text-xs bg-white border border-stone-200 rounded-xl text-stone-900 focus:border-amber-600 outline-none cursor-pointer disabled:bg-stone-100"
+            >
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+            </select>
+          </div>
+        </div>
+
         <div>
-          <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-            Role Name <span className="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
+          <label className="block text-xs font-semibold text-stone-700 mb-1">Role Description *</label>
+          <textarea
             required
-            disabled={disabled}
-            placeholder="e.g. Senior Order Manager"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/10 transition-all disabled:bg-stone-50"
+            rows={2}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Describe the responsibilities and scope of this role..."
+            className="w-full px-3 py-2 text-xs bg-white border border-stone-200 rounded-xl text-stone-900 focus:border-amber-600 outline-none resize-none"
           />
         </div>
+      </div>
 
+      {/* Permissions Groups Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
         <div>
-          <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-            Status
-          </label>
-          <select
-            disabled={disabled}
-            value={status}
-            onChange={(e) => setStatus(e.target.value as RoleStatus)}
-            className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/10 bg-white transition-all disabled:bg-stone-50"
-          >
-            <option value="ACTIVE">ACTIVE (Access Granted)</option>
-            <option value="DISABLED">DISABLED (Access Suspended)</option>
-          </select>
+          <h2 className="text-sm font-bold text-stone-900 font-display">Granular Module Permissions</h2>
+          <p className="text-xs text-stone-500">
+            {selectedPermissions.length} of {ALL_PERMISSION_IDS.length} total permissions enabled
+          </p>
         </div>
-      </div>
 
-      <div>
-        <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-          Description
-        </label>
-        <textarea
-          rows={2}
-          disabled={disabled}
-          placeholder="Brief description of the role responsibilities and permission scope..."
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/10 transition-all disabled:bg-stone-50"
-        />
-      </div>
+        {!isSuperAdmin && (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleGlobalSelectAll}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-semibold transition-colors cursor-pointer"
+            >
+              <CheckSquare className="w-3.5 h-3.5" />
+              <span>Select All Permissions</span>
+            </button>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-        <div>
-          <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
-            Role Theme Color
-          </label>
-          <div className="flex items-center gap-2 flex-wrap">
-            {colorPresets.map((c) => (
-              <button
-                key={c.hex}
-                type="button"
-                disabled={disabled}
-                onClick={() => setColor(c.hex)}
-                className={`w-6 h-6 rounded-full border-2 transition-transform ${
-                  color === c.hex ? "scale-125 border-stone-900 shadow-sm" : "border-white hover:scale-110"
-                }`}
-                style={{ backgroundColor: c.hex }}
-                title={c.name}
-              />
-            ))}
+            <button
+              type="button"
+              onClick={handleGlobalClearAll}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200 text-xs font-semibold transition-colors cursor-pointer"
+            >
+              <Square className="w-3.5 h-3.5 text-stone-400" />
+              <span>Clear All</span>
+            </button>
           </div>
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
-            Role Badge Icon
-          </label>
-          <div className="flex items-center gap-2 flex-wrap">
-            {iconList.map((ic) => {
-              const IconComp = ic.icon;
-              const isSelected = iconName === ic.name;
-              return (
-                <button
-                  key={ic.name}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => setIconName(ic.name)}
-                  className={`p-1.5 rounded-lg border text-xs transition-all ${
-                    isSelected
-                      ? "bg-amber-100 border-amber-500 text-amber-900 shadow-xs"
-                      : "bg-white border-stone-200 text-stone-500 hover:bg-stone-50"
-                  }`}
-                >
-                  <IconComp className="w-4 h-4" />
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        )}
       </div>
-    </div>
+
+      {/* Permission Groups List */}
+      <div className="space-y-4">
+        {ALL_PERMISSION_GROUPS.map((group) => (
+          <PermissionGroup
+            key={group.id}
+            group={group}
+            selectedPermissionIds={selectedPermissions}
+            onTogglePermission={handleTogglePermission}
+            onSelectAllGroup={handleSelectAllGroup}
+            onClearAllGroup={handleClearAllGroup}
+            disabled={isSuperAdmin}
+          />
+        ))}
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-stone-200">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 rounded-xl bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-md transition-colors cursor-pointer"
+        >
+          {isEditMode ? "Save Changes" : "Create Role"}
+        </button>
+      </div>
+    </form>
   );
 }

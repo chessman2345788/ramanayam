@@ -1,56 +1,262 @@
-import { PermissionModule, AdminRoleDetail, StaffUserItem } from "@/types/roles";
+export interface PermissionItem {
+  id: string; // e.g. 'products.create'
+  name: string; // e.g. 'Create Products'
+  description: string;
+}
 
-export const permissionModulesList: PermissionModule[] = [
-  { id: "dashboard", name: "Dashboard", actions: [{ key: "view", label: "View" }] },
+export interface PermissionGroupData {
+  id: string; // e.g. 'products'
+  name: string; // e.g. 'Products'
+  description: string;
+  permissions: PermissionItem[];
+}
+
+export interface AdminRoleDetail {
+  id: string;
+  name: string;
+  description: string;
+  isSystemRole?: boolean;
+  status: "ACTIVE" | "INACTIVE";
+  usersCount: number;
+  permissions: string[]; // List of permission IDs, e.g. ['dashboard.view', 'products.view', ...]
+  createdAt: string;
+  updatedAt?: string;
+
+  // Backward compatibility fields for legacy components
+  color?: string;
+  iconName?: string;
+  permissionsCount?: number;
+}
+
+export interface StaffUserItem {
+  id: string;
+  name: string;
+  email: string;
+  roleId: string;
+  roleName: string;
+  status: "ACTIVE" | "INVITED" | "SUSPENDED";
+  avatar?: string;
+  joinedDate: string;
+  lastActive?: string;
+}
+
+export const ALL_PERMISSION_GROUPS: PermissionGroupData[] = [
+  {
+    id: "dashboard",
+    name: "Dashboard",
+    description: "Access to store overview and analytical performance widgets",
+    permissions: [
+      { id: "dashboard.view", name: "View Dashboard", description: "Access main admin overview dashboard" },
+      { id: "dashboard.analytics", name: "View Analytics", description: "Access real-time sales and visitor metrics" },
+    ],
+  },
   {
     id: "products",
     name: "Products",
-    actions: [
-      { key: "create", label: "Create" },
-      { key: "edit", label: "Edit" },
-      { key: "delete", label: "Delete" },
-      { key: "publish", label: "Publish" },
+    description: "Manage sacred products, brassware, malas, and catalog pricing",
+    permissions: [
+      { id: "products.view", name: "View Products", description: "View catalog list and product details" },
+      { id: "products.create", name: "Create Products", description: "Add new products to store catalog" },
+      { id: "products.edit", name: "Edit Products", description: "Modify pricing, descriptions, and media" },
+      { id: "products.delete", name: "Delete Products", description: "Permanently delete products from catalog" },
+      { id: "products.publish", name: "Publish Products", description: "Toggle live visibility on storefront" },
     ],
   },
-  { id: "inventory", name: "Inventory", actions: [{ key: "view", label: "View" }, { key: "update", label: "Update" }] },
+  {
+    id: "categories",
+    name: "Categories",
+    description: "Organize product categories and sub-categories",
+    permissions: [
+      { id: "categories.view", name: "View Categories", description: "View category hierarchy" },
+      { id: "categories.create", name: "Create Categories", description: "Add new product categories" },
+      { id: "categories.edit", name: "Edit Categories", description: "Edit category names and banners" },
+      { id: "categories.delete", name: "Delete Categories", description: "Remove categories" },
+    ],
+  },
+  {
+    id: "inventory",
+    name: "Inventory",
+    description: "Stock quantities, reorder alerts, and warehouse supply logs",
+    permissions: [
+      { id: "inventory.view", name: "View Inventory", description: "View stock levels and reorder alerts" },
+      { id: "inventory.adjust", name: "Adjust Stock", description: "Update product stock counts" },
+      { id: "inventory.history", name: "View Inventory History", description: "View stock adjustment audit history" },
+    ],
+  },
   {
     id: "orders",
     name: "Orders",
-    actions: [
-      { key: "view", label: "View" },
-      { key: "update_status", label: "Update Status" },
-      { key: "refund", label: "Refund" },
-      { key: "cancel", label: "Cancel" },
+    description: "Fulfill customer orders, update tracking, and issue refunds",
+    permissions: [
+      { id: "orders.view", name: "View Orders", description: "View customer order details and history" },
+      { id: "orders.status", name: "Update Order Status", description: "Mark orders as Processing, Shipped, Delivered" },
+      { id: "orders.cancel", name: "Cancel Orders", description: "Cancel pending customer orders" },
+      { id: "orders.refund", name: "Refund Orders", description: "Issue refunds via payment gateway" },
     ],
   },
-  { id: "customers", name: "Customers", actions: [{ key: "view", label: "View" }, { key: "edit", label: "Edit" }] },
+  {
+    id: "customers",
+    name: "Customers",
+    description: "Devotee records, order history, and account status",
+    permissions: [
+      { id: "customers.view", name: "View Customers", description: "View customer profiles and order history" },
+      { id: "customers.edit", name: "Edit Customers", description: "Update customer contact details" },
+      { id: "customers.block", name: "Block Customers", description: "Restrict customer account access" },
+    ],
+  },
   {
     id: "reviews",
     name: "Reviews",
-    actions: [
-      { key: "approve", label: "Approve" },
-      { key: "reject", label: "Reject" },
-      { key: "delete", label: "Delete" },
+    description: "Product reviews moderation and public rating approvals",
+    permissions: [
+      { id: "reviews.view", name: "View Reviews", description: "View customer ratings and reviews" },
+      { id: "reviews.approve", name: "Approve Reviews", description: "Approve reviews for public storefront" },
+      { id: "reviews.hide", name: "Hide Reviews", description: "Hide inappropriate customer reviews" },
+      { id: "reviews.delete", name: "Delete Reviews", description: "Permanently delete reviews" },
     ],
   },
   {
     id: "coupons",
     name: "Coupons",
-    actions: [
-      { key: "create", label: "Create" },
-      { key: "edit", label: "Edit" },
-      { key: "delete", label: "Delete" },
+    description: "Promotional discount codes and festival campaign vouchers",
+    permissions: [
+      { id: "coupons.view", name: "View Coupons", description: "View active and expired promo codes" },
+      { id: "coupons.create", name: "Create Coupons", description: "Create new discount codes" },
+      { id: "coupons.edit", name: "Edit Coupons", description: "Modify discount rules and validity" },
+      { id: "coupons.disable", name: "Disable Coupons", description: "Deactivate promo campaigns" },
     ],
   },
-  { id: "analytics", name: "Analytics", actions: [{ key: "view", label: "View" }, { key: "export", label: "Export" }] },
-  { id: "settings", name: "Settings", actions: [{ key: "view", label: "View" }, { key: "edit", label: "Edit" }] },
-  { id: "cms", name: "CMS", actions: [{ key: "edit", label: "Edit" }, { key: "publish", label: "Publish" }] },
-  { id: "collections", name: "Collections", actions: [{ key: "manage", label: "Manage" }] },
-  { id: "users", name: "Users", actions: [{ key: "manage", label: "Manage" }] },
-  { id: "roles", name: "Roles", actions: [{ key: "manage", label: "Manage" }] },
+  {
+    id: "analytics",
+    name: "Analytics",
+    description: "Revenue intelligence, sales reports, and customer cohorts",
+    permissions: [
+      { id: "analytics.view", name: "View Analytics", description: "Access store sales charts and reporting" },
+      { id: "analytics.export", name: "Export Reports", description: "Download CSV and PDF executive reports" },
+    ],
+  },
+  {
+    id: "vendors",
+    name: "Vendors",
+    description: "Marketplace seller onboarding, approval, and management",
+    permissions: [
+      { id: "vendors.view", name: "View Vendors", description: "View seller accounts and statistics" },
+      { id: "vendors.approve", name: "Approve Vendors", description: "Approve pending seller applications" },
+      { id: "vendors.suspend", name: "Suspend Vendors", description: "Suspend non-compliant sellers" },
+    ],
+  },
+  {
+    id: "security",
+    name: "Settings & Security",
+    description: "Store configuration, RBAC roles, and security audit logs",
+    permissions: [
+      { id: "settings.view", name: "View Settings", description: "View store preferences and rules" },
+      { id: "settings.edit", name: "Edit Settings", description: "Modify store configuration and payment rules" },
+      { id: "security.audit", name: "View Audit Logs", description: "View admin access and security logs" },
+      { id: "security.roles", name: "Manage Roles", description: "Create and edit admin roles & permissions" },
+    ],
+  },
 ];
 
-export const mockStaffUsers: StaffUserItem[] = [
+// Compatibility export for legacy components
+export const permissionModulesList = ALL_PERMISSION_GROUPS.map((g) => ({
+  id: g.id,
+  name: g.name,
+  actions: g.permissions.map((p) => ({ key: p.id.split(".")[1] || p.id, label: p.name })),
+}));
+
+// All permission IDs flattened
+export const TOTAL_PERMISSIONS_COUNT = ALL_PERMISSION_GROUPS.reduce(
+  (acc, g) => acc + g.permissions.length,
+  0
+);
+
+export const ALL_PERMISSION_IDS = ALL_PERMISSION_GROUPS.flatMap((g) =>
+  g.permissions.map((p) => p.id)
+);
+
+export const mockRolesList: AdminRoleDetail[] = [
+  {
+    id: "role_super_admin",
+    name: "Super Admin",
+    description: "Full unrestricted access to all store modules, settings, security, and staff management.",
+    isSystemRole: true,
+    status: "ACTIVE",
+    usersCount: 2,
+    permissions: ALL_PERMISSION_IDS,
+    createdAt: "2026-01-01",
+    updatedAt: "2026-08-01",
+    color: "#701A75",
+    iconName: "ShieldCheck",
+    permissionsCount: ALL_PERMISSION_IDS.length,
+  },
+  {
+    id: "role_admin_manager",
+    name: "Admin / Manager",
+    description: "Full operational access across Products, Categories, Inventory, Orders, Customers, Reviews, and Coupons.",
+    isSystemRole: true,
+    status: "ACTIVE",
+    usersCount: 4,
+    permissions: [
+      "dashboard.view", "dashboard.analytics",
+      "products.view", "products.create", "products.edit", "products.publish",
+      "categories.view", "categories.create", "categories.edit",
+      "inventory.view", "inventory.adjust", "inventory.history",
+      "orders.view", "orders.status", "orders.refund",
+      "customers.view", "customers.edit",
+      "reviews.view", "reviews.approve", "reviews.hide",
+      "coupons.view", "coupons.create", "coupons.edit",
+      "analytics.view", "analytics.export",
+      "settings.view",
+    ],
+    createdAt: "2026-01-15",
+    updatedAt: "2026-07-20",
+    color: "#F57C00",
+    iconName: "UserCheck",
+    permissionsCount: 26,
+  },
+  {
+    id: "role_staff",
+    name: "Staff / Moderator",
+    description: "Limited operational permissions for order status updates, review moderation, and customer lookups.",
+    isSystemRole: true,
+    status: "ACTIVE",
+    usersCount: 5,
+    permissions: [
+      "dashboard.view",
+      "orders.view", "orders.status",
+      "customers.view",
+      "reviews.view", "reviews.approve", "reviews.hide",
+      "inventory.view",
+    ],
+    createdAt: "2026-02-01",
+    updatedAt: "2026-07-10",
+    color: "#16A34A",
+    iconName: "ShoppingBag",
+    permissionsCount: 8,
+  },
+  {
+    id: "role_vendor",
+    name: "Vendor",
+    description: "Future marketplace seller role. Restricted access to seller's own products, orders, and stock.",
+    isSystemRole: true,
+    status: "ACTIVE",
+    usersCount: 3,
+    permissions: [
+      "dashboard.view",
+      "products.view", "products.create", "products.edit",
+      "orders.view", "orders.status",
+      "inventory.view", "inventory.adjust",
+    ],
+    createdAt: "2026-03-01",
+    updatedAt: "2026-06-15",
+    color: "#0284C7",
+    iconName: "Users",
+    permissionsCount: 8,
+  },
+];
+
+export const mockStaffUsersList: StaffUserItem[] = [
   {
     id: "usr_1",
     name: "Pandit Rajesh Sharma",
@@ -58,222 +264,54 @@ export const mockStaffUsers: StaffUserItem[] = [
     roleId: "role_super_admin",
     roleName: "Super Admin",
     status: "ACTIVE",
-    lastActive: "Just now",
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+    joinedDate: "2026-01-01",
+    lastActive: "Just now",
   },
   {
     id: "usr_2",
     name: "Meera Agarwal",
     email: "meera.mktg@ramanayam.com",
-    roleId: "role_marketing_mgr",
-    roleName: "Marketing Manager",
+    roleId: "role_admin_manager",
+    roleName: "Admin / Manager",
     status: "ACTIVE",
-    lastActive: "2 hours ago",
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80",
+    joinedDate: "2026-01-15",
+    lastActive: "2 hours ago",
   },
   {
     id: "usr_3",
     name: "Ananya Iyer",
     email: "ananya.mod@ramanayam.com",
-    roleId: "role_customer_support",
-    roleName: "Customer Support",
+    roleId: "role_staff",
+    roleName: "Staff / Moderator",
     status: "ACTIVE",
-    lastActive: "Yesterday",
     avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&auto=format&fit=crop&q=80",
+    joinedDate: "2026-02-01",
+    lastActive: "Yesterday",
   },
   {
     id: "usr_4",
     name: "Sanjay Verma",
     email: "sanjay.ops@ramanayam.com",
-    roleId: "role_order_mgr",
-    roleName: "Order Manager",
+    roleId: "role_admin_manager",
+    roleName: "Admin / Manager",
     status: "ACTIVE",
-    lastActive: "3 hours ago",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
+    joinedDate: "2026-02-15",
+    lastActive: "3 hours ago",
   },
   {
     id: "usr_5",
     name: "Pooja Hegde",
     email: "pooja.inv@ramanayam.com",
-    roleId: "role_inv_mgr",
-    roleName: "Inventory Manager",
+    roleId: "role_staff",
+    roleName: "Staff / Moderator",
     status: "INVITED",
-    lastActive: "Pending",
     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
+    joinedDate: "2026-03-01",
+    lastActive: "Pending",
   },
 ];
 
-export const mockRolesList: AdminRoleDetail[] = [
-  {
-    id: "role_super_admin",
-    name: "Super Admin",
-    description: "Full unrestricted access to all store modules, settings, security, and staff management.",
-    color: "#701A75",
-    iconName: "ShieldCheck",
-    isSystemRole: true,
-    status: "ACTIVE",
-    usersCount: 2,
-    permissionsCount: 28,
-    createdAt: "2026-01-01",
-    permissions: {
-      dashboard: ["view"],
-      products: ["create", "edit", "delete", "publish"],
-      inventory: ["view", "update"],
-      orders: ["view", "update_status", "refund", "cancel"],
-      customers: ["view", "edit"],
-      reviews: ["approve", "reject", "delete"],
-      coupons: ["create", "edit", "delete"],
-      analytics: ["view", "export"],
-      settings: ["view", "edit"],
-      cms: ["edit", "publish"],
-      collections: ["manage"],
-      users: ["manage"],
-      roles: ["manage"],
-    },
-  },
-  {
-    id: "role_admin",
-    name: "Admin",
-    description: "Full operational access to store products, orders, customers, and marketing.",
-    color: "#F57C00",
-    iconName: "UserCheck",
-    isSystemRole: true,
-    status: "ACTIVE",
-    usersCount: 3,
-    permissionsCount: 22,
-    createdAt: "2026-01-15",
-    permissions: {
-      dashboard: ["view"],
-      products: ["create", "edit", "publish"],
-      inventory: ["view", "update"],
-      orders: ["view", "update_status", "refund"],
-      customers: ["view", "edit"],
-      reviews: ["approve", "reject"],
-      coupons: ["create", "edit"],
-      analytics: ["view", "export"],
-      cms: ["edit"],
-      collections: ["manage"],
-    },
-  },
-  {
-    id: "role_order_mgr",
-    name: "Order Manager",
-    description: "Manage customer order fulfillment, update tracking statuses, process refunds & cancellations.",
-    color: "#16A34A",
-    iconName: "ShoppingBag",
-    isSystemRole: false,
-    status: "ACTIVE",
-    usersCount: 4,
-    permissionsCount: 6,
-    createdAt: "2026-02-01",
-    permissions: {
-      dashboard: ["view"],
-      orders: ["view", "update_status", "refund", "cancel"],
-      customers: ["view"],
-      inventory: ["view"],
-    },
-  },
-  {
-    id: "role_inv_mgr",
-    name: "Inventory Manager",
-    description: "Monitor stock quantities, reorder alerts, and warehouse supply updates.",
-    color: "#0284C7",
-    iconName: "Package",
-    isSystemRole: false,
-    status: "ACTIVE",
-    usersCount: 2,
-    permissionsCount: 4,
-    createdAt: "2026-02-10",
-    permissions: {
-      dashboard: ["view"],
-      inventory: ["view", "update"],
-      products: ["edit"],
-    },
-  },
-  {
-    id: "role_product_mgr",
-    name: "Product Manager",
-    description: "Create, edit, price, and publish catalog items for brass diyas, Rudraksha, and mandirs.",
-    color: "#D97706",
-    iconName: "Tag",
-    isSystemRole: false,
-    status: "ACTIVE",
-    usersCount: 3,
-    permissionsCount: 7,
-    createdAt: "2026-03-01",
-    permissions: {
-      dashboard: ["view"],
-      products: ["create", "edit", "delete", "publish"],
-      collections: ["manage"],
-      inventory: ["view"],
-    },
-  },
-  {
-    id: "role_marketing_mgr",
-    name: "Marketing Manager",
-    description: "Create promotional festival discount coupons and view sales analytics reports.",
-    color: "#BE185D",
-    iconName: "Gift",
-    isSystemRole: false,
-    status: "ACTIVE",
-    usersCount: 2,
-    permissionsCount: 5,
-    createdAt: "2026-03-15",
-    permissions: {
-      dashboard: ["view"],
-      coupons: ["create", "edit", "delete"],
-      analytics: ["view", "export"],
-    },
-  },
-  {
-    id: "role_customer_support",
-    name: "Customer Support",
-    description: "View customer profiles, update contact info, and moderate submitted product reviews.",
-    color: "#4C1D95",
-    iconName: "MessageSquare",
-    isSystemRole: false,
-    status: "ACTIVE",
-    usersCount: 5,
-    permissionsCount: 5,
-    createdAt: "2026-04-01",
-    permissions: {
-      dashboard: ["view"],
-      customers: ["view", "edit"],
-      reviews: ["approve", "reject"],
-      orders: ["view"],
-    },
-  },
-  {
-    id: "role_content_mgr",
-    name: "Content Manager",
-    description: "Edit storefront banners, announcement bar, festival landing pages, and blog content.",
-    color: "#15803D",
-    iconName: "Layout",
-    isSystemRole: false,
-    status: "ACTIVE",
-    usersCount: 2,
-    permissionsCount: 4,
-    createdAt: "2026-05-01",
-    permissions: {
-      dashboard: ["view"],
-      cms: ["edit", "publish"],
-      collections: ["manage"],
-    },
-  },
-  {
-    id: "role_vendor_mgr",
-    name: "Vendor Manager (future)",
-    description: "Future role for onboarding external temple craft artisans and vendor partners.",
-    color: "#6B7280",
-    iconName: "Users",
-    isSystemRole: false,
-    status: "DISABLED",
-    usersCount: 0,
-    permissionsCount: 2,
-    createdAt: "2026-06-01",
-    permissions: {
-      dashboard: ["view"],
-      inventory: ["view"],
-    },
-  },
-];
+export const mockStaffUsers = mockStaffUsersList;

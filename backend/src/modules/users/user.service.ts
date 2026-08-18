@@ -162,6 +162,15 @@ export class UserService {
     if (!user) {
       throw new AppError("User not found", 404);
     }
+
+    // Super Admin Protection: Prevent demoting the final administrator in the database
+    if (user.role === UserRole.ADMIN && role !== UserRole.ADMIN) {
+      const adminCount = await this.repository.countAll({ role: UserRole.ADMIN, deletedAt: null });
+      if (adminCount <= 1) {
+        throw new AppError("Forbidden: Cannot demote or remove the final remaining administrator account", 403);
+      }
+    }
+
     return this.repository.update(id, { role });
   }
 }

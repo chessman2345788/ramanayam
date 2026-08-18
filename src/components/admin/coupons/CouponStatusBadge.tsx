@@ -2,7 +2,7 @@
 
 import React from "react";
 import { CouponStatus } from "@/data/mockCouponsData";
-import { CheckCircle2, Calendar, Clock, Ban } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, PowerOff, FileEdit } from "lucide-react";
 
 interface CouponStatusBadgeProps {
   status: CouponStatus;
@@ -13,42 +13,38 @@ export function CouponStatusBadge({ status }: CouponStatusBadgeProps) {
     switch (status) {
       case "ACTIVE":
         return {
-          bg: "rgba(22,163,74,0.1)",
-          color: "#16A34A",
-          border: "rgba(22,163,74,0.25)",
-          icon: <CheckCircle2 size={12} />,
+          bg: "bg-emerald-50 text-emerald-700 border-emerald-200",
+          icon: <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />,
           label: "Active",
         };
       case "SCHEDULED":
         return {
-          bg: "rgba(2,132,199,0.1)",
-          color: "#0284C7",
-          border: "rgba(2,132,199,0.25)",
-          icon: <Calendar size={12} />,
+          bg: "bg-amber-50 text-amber-700 border-amber-200",
+          icon: <Clock className="w-3.5 h-3.5 text-amber-600" />,
           label: "Scheduled",
         };
       case "EXPIRED":
         return {
-          bg: "rgba(107,114,128,0.1)",
-          color: "#6B7280",
-          border: "rgba(107,114,128,0.25)",
-          icon: <Clock size={12} />,
+          bg: "bg-rose-50 text-rose-700 border-rose-200",
+          icon: <XCircle className="w-3.5 h-3.5 text-rose-600" />,
           label: "Expired",
         };
       case "DISABLED":
         return {
-          bg: "rgba(220,38,38,0.1)",
-          color: "#DC2626",
-          border: "rgba(220,38,38,0.25)",
-          icon: <Ban size={12} />,
+          bg: "bg-stone-100 text-stone-600 border-stone-300",
+          icon: <PowerOff className="w-3.5 h-3.5 text-stone-500" />,
           label: "Disabled",
+        };
+      case "DRAFT":
+        return {
+          bg: "bg-sky-50 text-sky-700 border-sky-200",
+          icon: <FileEdit className="w-3.5 h-3.5 text-sky-600" />,
+          label: "Draft",
         };
       default:
         return {
-          bg: "rgba(0,0,0,0.06)",
-          color: "#666666",
-          border: "rgba(0,0,0,0.1)",
-          icon: <Clock size={12} />,
+          bg: "bg-stone-100 text-stone-600 border-stone-200",
+          icon: <Clock className="w-3.5 h-3.5 text-stone-400" />,
           label: status,
         };
     }
@@ -58,21 +54,10 @@ export function CouponStatusBadge({ status }: CouponStatusBadgeProps) {
 
   return (
     <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 4,
-        padding: "3px 8px",
-        borderRadius: 6,
-        fontSize: 11,
-        fontWeight: 600,
-        background: style.bg,
-        color: style.color,
-        border: `1px solid ${style.border}`,
-      }}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border shadow-2xs transition-colors ${style.bg}`}
     >
       {style.icon}
-      {style.label}
+      <span>{style.label}</span>
     </span>
   );
 }

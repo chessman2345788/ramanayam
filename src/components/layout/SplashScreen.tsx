@@ -38,7 +38,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
             zIndex: 9999,
             display: "flex",
             overflow: "hidden",
-            pointerEvents: "none",
+            pointerEvents: "auto",
           }}
         >
           {/* Subtle paper noise texture on splash */}

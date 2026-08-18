@@ -13,7 +13,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AuthGuard>
+    <AuthGuard allowedRoles={["ADMIN"]}>
       <AdminLayoutClient>{children}</AdminLayoutClient>
     </AuthGuard>
   );

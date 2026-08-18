@@ -25,6 +25,12 @@ export class AdminController {
     sendSuccess(res, "Admin platform statistics fetched successfully", stats);
   };
 
+  getAnalyticsOverview = async (req: Request, res: Response): Promise<void> => {
+    const { range, startDate, endDate } = req.query as any;
+    const analytics = await this.service.getAnalyticsOverview(range, startDate, endDate);
+    sendSuccess(res, "Admin analytics fetched successfully", analytics);
+  };
+
   getUsers = async (req: Request, res: Response): Promise<void> => {
     const users = await this.service.getUsers(req.query as any);
     sendSuccess(res, "Users list fetched successfully", users);

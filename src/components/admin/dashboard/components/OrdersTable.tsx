@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Search, Eye, MoreHorizontal, ArrowRight } from "lucide-react";
-import { mockRecentOrders } from "../data/dashboard.mock";
+import { Search, Eye, ArrowRight } from "lucide-react";
+import { useAdminDashboardQuery } from "@/hooks/useAdminDashboard";
 import { RecentOrder } from "../types/dashboard.types";
 
 export function OrdersTable() {
@@ -11,7 +11,15 @@ export function OrdersTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 4;
 
-  const filteredOrders = mockRecentOrders.filter(
+  const { data: apiData, isLoading } = useAdminDashboardQuery();
+
+  const recentOrders: RecentOrder[] = (apiData?.recentOrders || []).map((o) => ({
+    ...o,
+    paymentMode: (["UPI", "Card", "NetBanking", "COD"].includes(o.paymentMode) ? o.paymentMode : "UPI") as any,
+    status: (["Completed", "Processing", "Pending", "Cancelled"].includes(o.status) ? o.status : "Pending") as any,
+  }));
+
+  const filteredOrders = recentOrders.filter(
     (order) =>
       order.id.toLowerCase().includes(search.toLowerCase()) ||
       order.customerName.toLowerCase().includes(search.toLowerCase()) ||
@@ -24,7 +32,7 @@ export function OrdersTable() {
     currentPage * pageSize
   );
 
-  const getStatusBadge = (status: RecentOrder["status"]) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case "Completed":
         return "bg-emerald-50 text-emerald-700 border-emerald-200";
@@ -34,6 +42,8 @@ export function OrdersTable() {
         return "bg-amber-50 text-amber-700 border-amber-200";
       case "Cancelled":
         return "bg-red-50 text-red-700 border-red-200";
+      default:
+        return "bg-gray-50 text-gray-700 border-gray-200";
     }
   };
 
@@ -90,10 +100,16 @@ export function OrdersTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-black/4">
-            {paginatedOrders.length === 0 ? (
+            {isLoading ? (
               <tr>
                 <td colSpan={7} className="py-6 text-center text-[#999999]">
-                  No orders found matching search.
+                  Loading recent orders from database...
+                </td>
+              </tr>
+            ) : paginatedOrders.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="py-8 text-center text-[#999999]">
+                  No orders found in database.
                 </td>
               </tr>
             ) : (

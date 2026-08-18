@@ -113,7 +113,7 @@ export default function AdminProductsPage() {
   };
 
   const handleDuplicateProduct = (product: Product) => {
-    showToast(`Draft copy of "${product.name}" created.`);
+    showToast(`Backend limitation: Product duplication endpoint (/products/${product.id}/duplicate) is currently unavailable.`);
   };
 
   const handleArchiveProduct = (product: Product) => {

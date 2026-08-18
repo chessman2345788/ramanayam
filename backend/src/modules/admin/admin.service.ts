@@ -37,6 +37,10 @@ export class AdminService {
     return this.repository.getStats();
   }
 
+  async getAnalyticsOverview(range?: string, startDate?: string, endDate?: string) {
+    return this.repository.getAnalyticsOverview(range, startDate, endDate);
+  }
+
   async getUsers(filters: UserQueryFilters) {
     return this.repository.findUsers(filters);
   }

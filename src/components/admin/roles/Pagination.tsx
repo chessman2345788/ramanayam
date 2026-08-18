@@ -9,6 +9,7 @@ interface PaginationProps {
   totalItems: number;
   pageSize: number;
   onPageChange: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
 }
 
 export function Pagination({
@@ -17,100 +18,56 @@ export function Pagination({
   totalItems,
   pageSize,
   onPageChange,
+  onPageSizeChange,
 }: PaginationProps) {
-  if (totalItems === 0) return null;
-
-  const startItem = (currentPage - 1) * pageSize + 1;
+  const startItem = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endItem = Math.min(currentPage * pageSize, totalItems);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "12px 16px",
-        background: "#FFFFFF",
-        borderTop: "1px solid rgba(0,0,0,0.06)",
-        fontSize: 13,
-        color: "#666666",
-        flexWrap: "wrap",
-        gap: 10,
-      }}
-    >
-      <div>
-        Showing <span style={{ fontWeight: 600, color: "#171717" }}>{startItem}</span> to{" "}
-        <span style={{ fontWeight: 600, color: "#171717" }}>{endItem}</span> of{" "}
-        <span style={{ fontWeight: 600, color: "#171717" }}>{totalItems}</span> roles
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 bg-white border border-stone-200 rounded-2xl shadow-2xs text-xs">
+      <div className="text-stone-500 font-medium">
+        Showing <span className="font-bold text-stone-900">{startItem}</span> to{" "}
+        <span className="font-bold text-stone-900">{endItem}</span> of{" "}
+        <span className="font-bold text-stone-900">{totalItems}</span> roles
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <button
-          type="button"
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage <= 1}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-            padding: "5px 10px",
-            borderRadius: 6,
-            border: "1px solid rgba(0,0,0,0.12)",
-            background: currentPage <= 1 ? "#FAF8F3" : "#FFFFFF",
-            color: currentPage <= 1 ? "#BBBBBB" : "#171717",
-            cursor: currentPage <= 1 ? "not-allowed" : "pointer",
-            fontSize: 12,
-            fontWeight: 500,
-          }}
-        >
-          <ChevronLeft size={14} /> Previous
-        </button>
-
-        {Array.from({ length: totalPages }).map((_, idx) => {
-          const pageNum = idx + 1;
-          const isActive = pageNum === currentPage;
-          return (
-            <button
-              key={pageNum}
-              type="button"
-              onClick={() => onPageChange(pageNum)}
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: 6,
-                border: "none",
-                background: isActive ? "#F57C00" : "transparent",
-                color: isActive ? "#FFFFFF" : "#171717",
-                fontWeight: isActive ? 700 : 500,
-                fontSize: 12,
-                cursor: "pointer",
-              }}
+      <div className="flex items-center gap-3">
+        {onPageSizeChange && (
+          <div className="flex items-center gap-1.5 text-stone-500">
+            <span>Per page:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => onPageSizeChange(Number(e.target.value))}
+              className="bg-stone-50 border border-stone-200 rounded-lg px-2 py-1 text-stone-900 font-semibold outline-none cursor-pointer"
             >
-              {pageNum}
-            </button>
-          );
-        })}
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+            </select>
+          </div>
+        )}
 
-        <button
-          type="button"
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage >= totalPages}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-            padding: "5px 10px",
-            borderRadius: 6,
-            border: "1px solid rgba(0,0,0,0.12)",
-            background: currentPage >= totalPages ? "#FAF8F3" : "#FFFFFF",
-            color: currentPage >= totalPages ? "#BBBBBB" : "#171717",
-            cursor: currentPage >= totalPages ? "not-allowed" : "pointer",
-            fontSize: 12,
-            fontWeight: 500,
-          }}
-        >
-          Next <ChevronRight size={14} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            disabled={currentPage <= 1}
+            onClick={() => onPageChange(currentPage - 1)}
+            className="p-1.5 rounded-lg border border-stone-200 bg-white text-stone-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-stone-50 transition-colors cursor-pointer"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <span className="px-3 font-semibold text-stone-800">
+            Page {currentPage} of {totalPages || 1}
+          </span>
+          <button
+            type="button"
+            disabled={currentPage >= totalPages || totalPages === 0}
+            onClick={() => onPageChange(currentPage + 1)}
+            className="p-1.5 rounded-lg border border-stone-200 bg-white text-stone-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-stone-50 transition-colors cursor-pointer"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   );

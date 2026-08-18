@@ -14,11 +14,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import {
-  mockMonthlyRevenue,
-  mockWeeklyRevenue,
-  mockDailyRevenue,
-} from "../data/dashboard.mock";
+import { useAdminDashboardQuery } from "@/hooks/useAdminDashboard";
 
 type Timeframe = "Monthly" | "Weekly" | "Daily";
 type ChartType = "area" | "line" | "bar";
@@ -27,12 +23,36 @@ export function RevenueChart() {
   const [timeframe, setTimeframe] = useState<Timeframe>("Monthly");
   const [chartType, setChartType] = useState<ChartType>("area");
 
+  const { data: apiData } = useAdminDashboardQuery();
+
   const data =
     timeframe === "Monthly"
-      ? mockMonthlyRevenue
+      ? apiData?.revenueMonthly || [
+          { date: "Jan", revenue: 0, orders: 0 },
+          { date: "Feb", revenue: 0, orders: 0 },
+          { date: "Mar", revenue: 0, orders: 0 },
+          { date: "Apr", revenue: 0, orders: 0 },
+          { date: "May", revenue: 0, orders: 0 },
+          { date: "Jun", revenue: 0, orders: 0 },
+        ]
       : timeframe === "Weekly"
-      ? mockWeeklyRevenue
-      : mockDailyRevenue;
+      ? apiData?.revenueWeekly || [
+          { date: "Mon", revenue: 0, orders: 0 },
+          { date: "Tue", revenue: 0, orders: 0 },
+          { date: "Wed", revenue: 0, orders: 0 },
+          { date: "Thu", revenue: 0, orders: 0 },
+          { date: "Fri", revenue: 0, orders: 0 },
+          { date: "Sat", revenue: 0, orders: 0 },
+          { date: "Sun", revenue: 0, orders: 0 },
+        ]
+      : apiData?.revenueDaily || [
+          { date: "06:00 AM", revenue: 0, orders: 0 },
+          { date: "09:00 AM", revenue: 0, orders: 0 },
+          { date: "12:00 PM", revenue: 0, orders: 0 },
+          { date: "03:00 PM", revenue: 0, orders: 0 },
+          { date: "06:00 PM", revenue: 0, orders: 0 },
+          { date: "09:00 PM", revenue: 0, orders: 0 },
+        ];
 
   const formatYAxis = (val: number) => {
     if (val >= 100000) return `₹${(val / 100000).toFixed(1)}L`;

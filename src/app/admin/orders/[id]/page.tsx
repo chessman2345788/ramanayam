@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { mockOrdersList } from "@/data/mockOrdersData";
 import { Order, OrderStatus, TrackingInfo, OrderNote } from "@/types/orders";
@@ -14,6 +14,8 @@ import { InvoiceModal } from "@/components/admin/orders/InvoiceModal";
 import { AssignCourierModal } from "@/components/admin/orders/AssignCourierModal";
 import { RefundModal } from "@/components/admin/orders/RefundModal";
 import Link from "next/link";
+import { OrderService } from "@/services/order.service";
+import { AdminToast } from "@/components/admin/ui";
 import {
   ArrowLeft,
   Printer,
@@ -23,6 +25,7 @@ import {
   MessageSquare,
   Sparkles,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
 
 export default function OrderDetailsPage() {
@@ -30,9 +33,9 @@ export default function OrderDetailsPage() {
   const router = useRouter();
   const orderId = params.id as string;
 
-  // Find order in mock dataset or fallback to first order
-  const initialOrder = mockOrdersList.find((o) => o.id === orderId) || mockOrdersList[0];
-  const [order, setOrder] = useState<Order>(initialOrder);
+  const [order, setOrder] = useState<Order | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   // Modals state
   const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
@@ -40,38 +43,169 @@ export default function OrderDetailsPage() {
   const [isRefundOpen, setIsRefundOpen] = useState(false);
   const [newNoteText, setNewNoteText] = useState("");
 
-  const handleStatusChange = (newStatus: OrderStatus) => {
-    const newTimelineEvent = {
-      id: `t-edit-${Date.now()}`,
-      title: `Status set to ${newStatus}`,
-      status: newStatus,
-      timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
-      date: new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
-      actor: "Admin (Operations)",
-      note: `Updated manually from Order Details page.`,
-    };
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
 
-    setOrder((prev) => ({
-      ...prev,
-      orderStatus: newStatus,
-      timeline: [newTimelineEvent, ...prev.timeline],
-    }));
+  const loadOrderDetails = async () => {
+    if (!orderId) return;
+    setIsLoading(true);
+    try {
+      const raw = await OrderService.fetchAdminOrderByIdFromApi(orderId);
+      if (raw) {
+        const user = raw.user || {};
+        const paymentObj = raw.payments?.[0] || {};
+        const customerName = user.firstName || user.lastName ? `${user.firstName || ""} ${user.lastName || ""}`.trim() : "Devotee";
+
+        let orderStatus: OrderStatus = "Pending";
+        switch (raw.status) {
+          case "CONFIRMED":
+            orderStatus = "Confirmed";
+            break;
+          case "PROCESSING":
+            orderStatus = "Packed";
+            break;
+          case "SHIPPED":
+            orderStatus = "Shipped";
+            break;
+          case "DELIVERED":
+            orderStatus = "Delivered";
+            break;
+          case "CANCELLED":
+            orderStatus = "Cancelled";
+            break;
+          case "RETURNED":
+            orderStatus = "Returned";
+            break;
+          default:
+            orderStatus = "Pending";
+        }
+
+        const items = Array.isArray(raw.orderItems)
+          ? raw.orderItems.map((item: any, idx: number) => {
+              const pv = item.productVariant || {};
+              const p = pv.product || {};
+              return {
+                id: item.id || `item-${idx}`,
+                productId: p.id || pv.productId || "",
+                productName: p.name || "Sacred Item",
+                variantName: pv.variantName || pv.sku || "Standard",
+                sku: pv.sku || `SKU-${idx}`,
+                image: "/images/products/placeholder.jpg",
+                price: Number(item.price || 0),
+                quantity: item.quantity || 1,
+                total: Number(item.price || 0) * (item.quantity || 1),
+                gstRate: 18,
+              };
+            })
+          : [];
+
+        const formatted: Order = {
+          id: raw.id,
+          customer: {
+            id: raw.userId || user.id || "c-0",
+            name: customerName,
+            email: user.email || "devotee@ramayanam.in",
+            phone: user.phone || "+91 98765 43210",
+            totalOrders: 1,
+            totalSpent: Number(raw.totalAmount || 0),
+            badge: "Regular",
+            joinedDate: "2024-01-15",
+          },
+          shippingAddress: {
+            name: customerName,
+            street: "123 Temple Road",
+            city: "Varanasi",
+            state: "Uttar Pradesh",
+            pincode: "221001",
+            country: "India",
+            phone: user.phone || "+91 98765 43210",
+          },
+          billingAddress: {
+            name: customerName,
+            street: "123 Temple Road",
+            city: "Varanasi",
+            state: "Uttar Pradesh",
+            pincode: "221001",
+            country: "India",
+            phone: user.phone || "+91 98765 43210",
+          },
+          items,
+          itemsCount: items.length,
+          subtotal: Number(raw.totalAmount || 0),
+          shippingCharges: 0,
+          gstSummary: {
+            subtotal: Number(raw.totalAmount || 0),
+            cgst: 0,
+            sgst: 0,
+            igst: 0,
+            totalTax: 0,
+          },
+          discountSummary: { amount: 0 },
+          totalAmount: Number(raw.totalAmount || 0),
+          paymentMethod: paymentObj.provider || "RAZORPAY",
+          paymentStatus: (paymentObj.status === "SUCCESS" ? "Paid" : paymentObj.status === "REFUNDED" ? "Refunded" : "Pending") as any,
+          orderStatus,
+          transactionId: paymentObj.transactionId || `TXN-${raw.id.slice(0, 8)}`,
+          date: new Date(raw.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
+          time: new Date(raw.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
+          createdAtISO: raw.createdAt,
+          timeline: [
+            {
+              id: "t-1",
+              title: "Order Placed",
+              status: "Pending",
+              timestamp: new Date(raw.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
+              date: new Date(raw.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
+              actor: customerName,
+              note: "Order created successfully in database.",
+            },
+          ],
+          notes: [],
+        };
+        setOrder(formatted);
+      }
+    } catch (err: any) {
+      console.error("Failed to load order details:", err);
+      showToast("Order not found or backend API error.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadOrderDetails();
+  }, [orderId]);
+
+  const handleStatusChange = async (newStatus: OrderStatus) => {
+    const backendStatusMap: Record<string, string> = {
+      Pending: "PENDING",
+      Confirmed: "CONFIRMED",
+      Processing: "PROCESSING",
+      Shipped: "SHIPPED",
+      Delivered: "DELIVERED",
+      Cancelled: "CANCELLED",
+      Returned: "RETURNED",
+    };
+    const backendStatus = backendStatusMap[newStatus] || newStatus.toUpperCase();
+
+    try {
+      await OrderService.updateOrderStatusFromApi(orderId, backendStatus);
+      showToast(`Order status updated to ${newStatus}.`);
+      await loadOrderDetails();
+    } catch (err: any) {
+      const errMsg = err?.response?.data?.message || err?.message || "Status update failed.";
+      showToast(`Transition Error: ${errMsg}`);
+    }
   };
 
   const handleAssignCourier = (tracking: TrackingInfo) => {
-    setOrder((prev) => ({
-      ...prev,
-      orderStatus: "Shipped",
-      trackingInfo: tracking,
-    }));
+    setOrder((prev) => (prev ? { ...prev, orderStatus: "Shipped", trackingInfo: tracking } : null));
   };
 
   const handleConfirmRefund = () => {
-    setOrder((prev) => ({
-      ...prev,
-      orderStatus: "Refunded",
-      paymentStatus: "Refunded",
-    }));
+    setOrder((prev) => (prev ? { ...prev, orderStatus: "Refunded", paymentStatus: "Refunded" } : null));
   };
 
   const handleAddNote = (e: React.FormEvent) => {
@@ -86,15 +220,22 @@ export default function OrderDetailsPage() {
       date: new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
     };
 
-    setOrder((prev) => ({
-      ...prev,
-      notes: [noteObj, ...prev.notes],
-    }));
+    setOrder((prev) => (prev ? { ...prev, notes: [noteObj, ...prev.notes] } : null));
     setNewNoteText("");
   };
 
+  if (isLoading || !order) {
+    return (
+      <div className="p-12 flex flex-col items-center justify-center text-center">
+        <Loader2 className="w-8 h-8 text-amber-600 animate-spin mb-2" />
+        <p className="text-sm font-semibold text-stone-700">Loading order details from database...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5 pb-16">
+      <AdminToast message={toastMsg} onClose={() => setToastMsg(null)} />
       {/* Breadcrumb & Navigation */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs text-gray-500">

@@ -14,7 +14,8 @@ import { ProductService } from "@/services/product.service";
 import { AdminSearchBar, AdminPagination, AdminToast } from "@/components/admin/ui";
 
 export default function AdminCategoriesPage() {
-  const [categories, setCategories] = useState<CategoryItem[]>(initialMockCategories);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(null);
@@ -38,95 +39,86 @@ export default function AdminCategoriesPage() {
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  useEffect(() => {
-    async function loadCategories() {
-      try {
-        const apiCats = await ProductService.fetchCategoriesFromApi();
-        if (apiCats && apiCats.length > 0) {
-          const formatted: CategoryItem[] = apiCats.map((c) => ({
-            id: c.id,
-            name: c.name,
-            slug: c.slug,
-            parentId: null,
-            parentName: null,
-            description: c.description || "",
-            image: c.image || "/images/categories/placeholder.jpg",
-            productCount: c.productCount || 0,
-            status: "ACTIVE",
-            seoTitle: (c as any).seoTitle || c.name,
-            seoDescription: (c as any).seoDescription || c.description || "",
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          }));
-          setCategories(formatted);
-        }
-      } catch (err) {
-        console.warn("Category API fetch fallback to mock:", err);
+  const reloadCategories = async () => {
+    setIsLoading(true);
+    try {
+      const apiCats = await ProductService.fetchCategoriesFromApi();
+      if (apiCats && apiCats.length > 0) {
+        const formatted: CategoryItem[] = apiCats.map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          slug: c.slug,
+          parentId: c.parentId || null,
+          parentName: c.parentName || null,
+          description: c.description || "",
+          image: c.image || "/images/categories/placeholder.jpg",
+          productCount: c.productCount || 0,
+          status: (c.status || (c.isActive ? "ACTIVE" : "HIDDEN")) as any,
+          seoTitle: c.seoTitle || c.name,
+          seoDescription: c.seoDescription || c.description || "",
+          createdAt: c.createdAt || new Date().toISOString(),
+          updatedAt: c.updatedAt || new Date().toISOString(),
+        }));
+        setCategories(formatted);
+      } else {
+        setCategories([]);
       }
+    } catch (err: any) {
+      console.error("Failed to load categories from API:", err);
+      showToast("Failed to load categories from database.");
+      setCategories([]);
+    } finally {
+      setIsLoading(false);
     }
-    loadCategories();
+  };
+
+  useEffect(() => {
+    reloadCategories();
   }, []);
 
   const handleSaveCategory = async (categoryData: Partial<CategoryItem>) => {
-    if (categoryData.id) {
-      await ProductService.updateCategoryFromApi(categoryData.id, categoryData);
-      setCategories((prev) =>
-        prev.map((cat) =>
-          cat.id === categoryData.id
-            ? { ...cat, ...categoryData, updatedAt: new Date().toISOString() }
-            : cat
-        )
-      );
-      showToast(`Category "${categoryData.name}" updated successfully.`);
-    } else {
-      const created = await ProductService.createCategoryFromApi(categoryData);
-      const newCat: CategoryItem = {
-        id: created.id || `cat-${Date.now()}`,
-        name: categoryData.name || "New Category",
-        slug: categoryData.slug || `cat-${Date.now()}`,
-        parentId: categoryData.parentId || null,
-        parentName: categoryData.parentName || null,
-        description: categoryData.description || "",
-        image: categoryData.image || "https://images.unsplash.com/photo-1609357605129-26f69add5d6e?w=500&auto=format&fit=crop&q=80",
-        productCount: 0,
-        status: categoryData.status || "ACTIVE",
-        seoTitle: categoryData.seoTitle || categoryData.name || "",
-        seoDescription: categoryData.seoDescription || categoryData.description || "",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setCategories((prev) => [newCat, ...prev]);
-      showToast(`New category "${newCat.name}" created successfully.`);
+    try {
+      if (categoryData.id) {
+        await ProductService.updateCategoryFromApi(categoryData.id, categoryData);
+        showToast(`Category "${categoryData.name}" updated successfully.`);
+      } else {
+        const created = await ProductService.createCategoryFromApi(categoryData);
+        showToast(`New category "${created.name || categoryData.name}" created successfully.`);
+      }
+      await reloadCategories();
+      setIsModalOpen(false);
+    } catch (err: any) {
+      const errMsg = err?.response?.data?.message || err?.message || "Failed to save category.";
+      showToast(`Error: ${errMsg}`);
     }
   };
 
   const handleDeleteCategory = async (category: CategoryItem) => {
-    await ProductService.deleteCategoryFromApi(category.id);
-    setCategories((prev) => prev.filter((c) => c.id !== category.id));
-    setSelectedIds((prev) => prev.filter((id) => id !== category.id));
-    showToast(`Category "${category.name}" deleted.`);
+    try {
+      await ProductService.deleteCategoryFromApi(category.id);
+      showToast(`Category "${category.name}" deleted successfully.`);
+      setSelectedIds((prev) => prev.filter((id) => id !== category.id));
+      setDeleteCategory(null);
+      await reloadCategories();
+    } catch (err: any) {
+      const errMsg = err?.response?.data?.message || err?.message || "Cannot delete category.";
+      showToast(`Delete Error: ${errMsg}`);
+    }
   };
 
   const handleDuplicate = (category: CategoryItem) => {
-    const dup: CategoryItem = {
-      ...category,
-      id: `cat-${Date.now()}`,
-      name: `${category.name} (Copy)`,
-      slug: `${category.slug}-copy`,
-      productCount: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setCategories((prev) => [dup, ...prev]);
-    showToast(`Duplicated "${category.name}".`);
+    showToast(`Backend limitation: Category duplication endpoint (/categories/${category.id}/duplicate) is currently unavailable.`);
   };
 
-  const handleToggleHide = (category: CategoryItem) => {
+  const handleToggleHide = async (category: CategoryItem) => {
     const nextStatus = category.status === "HIDDEN" ? "ACTIVE" : "HIDDEN";
-    setCategories((prev) =>
-      prev.map((c) => (c.id === category.id ? { ...c, status: nextStatus, updatedAt: new Date().toISOString() } : c))
-    );
-    showToast(`Status updated to ${nextStatus}.`);
+    try {
+      await ProductService.updateCategoryFromApi(category.id, { status: nextStatus });
+      showToast(`Category "${category.name}" status updated to ${nextStatus}.`);
+      await reloadCategories();
+    } catch (err: any) {
+      showToast(`Failed to update status: ${err?.message || "Error"}`);
+    }
   };
 
   const filteredCategories = useMemo(() => {

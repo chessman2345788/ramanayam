@@ -1,98 +1,73 @@
 "use client";
 
 import React from "react";
-import { ShoppingBag, Clock, CheckCircle2, AlertCircle, RefreshCw, XCircle } from "lucide-react";
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
 import { mockOrderStatuses } from "@/data/mockAnalyticsData";
 
 export function OrderAnalytics() {
-  const totalOrdersCount = mockOrderStatuses.reduce((acc, o) => acc + o.count, 0);
+  const statuses = [
+    { status: "Delivered", count: 1340, value: 2546000, color: "#16a34a" },
+    { status: "Shipped", count: 410, value: 780000, color: "#0284c7" },
+    { status: "Processing", count: 280, value: 532000, color: "#2563eb" },
+    { status: "Confirmed", count: 185, value: 350000, color: "#7c3aed" },
+    { status: "Pending", count: 124, value: 235600, color: "#d97706" },
+    { status: "Cancelled", count: 48, value: 91200, color: "#6b7280" },
+    { status: "Returned", count: 32, value: 60800, color: "#dc2626" },
+    { status: "Refunded", count: 18, value: 34200, color: "#9333ea" },
+  ];
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "Delivered":
-        return <CheckCircle2 size={16} style={{ color: "#16A34A" }} />;
-      case "Processing":
-        return <ShoppingBag size={16} style={{ color: "#2563EB" }} />;
-      case "Pending":
-        return <Clock size={16} style={{ color: "#D97706" }} />;
-      case "Returned":
-        return <AlertCircle size={16} style={{ color: "#DC2626" }} />;
-      case "Refunded":
-        return <RefreshCw size={16} style={{ color: "#9333EA" }} />;
-      case "Cancelled":
-        return <XCircle size={16} style={{ color: "#6B7280" }} />;
-      default:
-        return <ShoppingBag size={16} />;
-    }
-  };
+  const totalOrdersCount = statuses.reduce((acc, s) => acc + s.count, 0);
 
   return (
-    <div
-      style={{
-        background: "#FFFFFF",
-        borderRadius: 16,
-        border: "1px solid rgba(0,0,0,0.06)",
-        padding: 24,
-        boxShadow: "0 2px 12px rgba(0,0,0,0.03)",
-        display: "flex",
-        flexDirection: "column",
-        gap: 20,
-      }}
-    >
-      <div>
-        <h3 style={{ fontSize: 16, fontWeight: 700, color: "#171717", margin: 0 }}>Order Status Analytics</h3>
-        <p style={{ fontSize: 12, color: "#666666", margin: "2px 0 0" }}>
-          Fulfillment funnel across pending, processing, delivered, and cancelled states.
-        </p>
-      </div>
-
-      {/* Stacked Progress Bar */}
-      <div style={{ display: "flex", height: 12, borderRadius: 6, overflow: "hidden", background: "#FAF8F3" }}>
-        {mockOrderStatuses.map((item) => {
-          const percent = (item.count / totalOrdersCount) * 100;
-          return (
-            <div
-              key={item.status}
-              style={{
-                width: `${percent}%`,
-                background: item.color,
-                height: "100%",
-              }}
-              title={`${item.status}: ${item.count} orders (${percent.toFixed(1)}%)`}
-            />
-          );
-        })}
-      </div>
-
-      {/* Grid of Status Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 12 }}>
-        {mockOrderStatuses.map((item) => {
-          const percent = ((item.count / totalOrdersCount) * 100).toFixed(1);
-          return (
-            <div
-              key={item.status}
-              style={{
-                background: "#FAF8F3",
-                borderRadius: 10,
-                border: "1px solid rgba(0,0,0,0.06)",
-                padding: "12px 14px",
-                display: "flex",
-                flexDirection: "column",
-                gap: 6,
-              }}
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+      {/* Donut Chart */}
+      <div className="md:col-span-5 h-64 flex items-center justify-center relative">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={statuses}
+              dataKey="count"
+              nameKey="status"
+              cx="50%"
+              cy="50%"
+              innerRadius={55}
+              outerRadius={85}
+              paddingAngle={2}
             >
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "#171717" }}>{item.status}</span>
-                {getStatusIcon(item.status)}
-              </div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#171717" }}>{item.count}</div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#666666" }}>
-                <span>{percent}% share</span>
-                <span style={{ fontWeight: 600, color: item.color }}>₹{(item.value / 1000).toFixed(0)}k</span>
+              {statuses.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(val: any) => [`${Number(val).toLocaleString("en-IN")} orders`, "Count"]}
+              contentStyle={{ background: "#fff", borderRadius: "10px", border: "1px solid #e7e5e4", fontSize: "12px" }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <div className="text-xl font-extrabold text-stone-900 font-display">
+            {totalOrdersCount.toLocaleString("en-IN")}
+          </div>
+          <div className="text-[10px] text-stone-400 font-semibold uppercase">Total Orders</div>
+        </div>
+      </div>
+
+      {/* Status Breakdown Grid */}
+      <div className="md:col-span-7 grid grid-cols-2 gap-2.5">
+        {statuses.map((s) => (
+          <div key={s.status} className="bg-stone-50 p-2.5 rounded-xl border border-stone-200/80 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: s.color }} />
+              <span className="font-semibold text-stone-800">{s.status}</span>
+            </div>
+            <div className="text-right">
+              <div className="font-bold text-stone-900">{s.count.toLocaleString("en-IN")}</div>
+              <div className="text-[10px] text-stone-400">
+                {Math.round((s.count / totalOrdersCount) * 100)}%
               </div>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
     </div>
   );

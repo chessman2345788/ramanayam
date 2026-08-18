@@ -148,9 +148,14 @@ export const ProductService = {
   // API Category Fetch
   fetchCategoriesFromApi: async (): Promise<Category[]> => {
     try {
-      const res = await axiosClient.get("/categories");
-      const apiCategories = res.data?.data?.categories || res.data?.data || res.data;
-      if (Array.isArray(apiCategories) && apiCategories.length > 0) {
+      const res = await axiosClient.get("/categories", { params: { limit: 100 } });
+      const apiCategories =
+        res.data?.data?.data ||
+        res.data?.data?.items ||
+        res.data?.data?.categories ||
+        res.data?.categories ||
+        (Array.isArray(res.data?.data) ? res.data.data : []);
+      if (Array.isArray(apiCategories)) {
         return apiCategories.map((c: any) => ({
           id: c.id,
           slug: c.slug,
@@ -159,11 +164,19 @@ export const ProductService = {
           nameSanskrit: c.nameSanskrit || c.name,
           description: c.description || "",
           image: c.image || "/images/categories/placeholder.jpg",
-          productCount: c._count?.products || 0,
+          productCount: c._count?.products ?? c.productCount ?? 0,
+          childCount: c._count?.children ?? 0,
+          parentId: c.parentId || c.parent?.id || null,
+          parentName: c.parent?.name || null,
+          isActive: c.isActive ?? true,
+          status: c.isActive === false ? "HIDDEN" : "ACTIVE",
+          createdAt: c.createdAt || new Date().toISOString(),
+          updatedAt: c.updatedAt || new Date().toISOString(),
         }));
       }
       return localCategories;
-    } catch {
+    } catch (err) {
+      console.warn("Failed to fetch categories from API:", err);
       return localCategories;
     }
   },
@@ -172,7 +185,11 @@ export const ProductService = {
   fetchVendorsFromApi: async (): Promise<{ id: string; name: string; slug?: string }[]> => {
     try {
       const res = await axiosClient.get("/vendors");
-      const list = res.data?.data?.vendors || res.data?.vendors || (Array.isArray(res.data?.data) ? res.data.data : []);
+      const list =
+        res.data?.data?.data ||
+        res.data?.data?.vendors ||
+        res.data?.vendors ||
+        (Array.isArray(res.data?.data) ? res.data.data : []);
       if (Array.isArray(list) && list.length > 0) {
         return list.map((v: any) => ({
           id: v.id,
@@ -187,30 +204,46 @@ export const ProductService = {
   },
 
   createCategoryFromApi: async (data: any): Promise<any> => {
-    try {
-      const res = await axiosClient.post("/categories", data);
-      return res.data?.data || res.data;
-    } catch {
-      return { id: `cat_${Date.now()}`, ...data };
-    }
+    const rawSlug = data.slug || data.name || "";
+    const cleanSlug = rawSlug
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)+/g, "");
+
+    const payload = {
+      name: data.name,
+      slug: cleanSlug,
+      description: data.description || null,
+      image: data.image || null,
+      parentId: data.parentId || null,
+      isActive: data.status === "HIDDEN" ? false : true,
+    };
+
+    const res = await axiosClient.post("/categories", payload);
+    return res.data?.data || res.data;
   },
 
   updateCategoryFromApi: async (id: string, data: any): Promise<any> => {
-    try {
-      const res = await axiosClient.patch(`/categories/${id}`, data);
-      return res.data?.data || res.data;
-    } catch {
-      return { id, ...data };
+    const payload: Record<string, any> = {};
+    if (data.name) payload.name = data.name;
+    if (data.slug) {
+      payload.slug = data.slug
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)+/g, "");
     }
+    if (data.description !== undefined) payload.description = data.description;
+    if (data.image !== undefined) payload.image = data.image;
+    if (data.parentId !== undefined) payload.parentId = data.parentId || null;
+    if (data.status !== undefined) payload.isActive = data.status !== "HIDDEN";
+
+    const res = await axiosClient.patch(`/categories/${id}`, payload);
+    return res.data?.data || res.data;
   },
 
   deleteCategoryFromApi: async (id: string): Promise<boolean> => {
-    try {
-      await axiosClient.delete(`/categories/${id}`);
-      return true;
-    } catch {
-      return true;
-    }
+    await axiosClient.delete(`/categories/${id}`);
+    return true;
   },
 
   // GET Products List with search, filtering, sorting, pagination
@@ -251,11 +284,28 @@ export const ProductService = {
     const res = await axiosClient.get("/products", { params: queryParams });
     const payload = res.data;
 
-    const rawList = payload.data?.products || payload.products || (Array.isArray(payload.data) ? payload.data : []);
-    const total = payload.data?.total || payload.pagination?.total || rawList.length;
-    const page = payload.data?.page || payload.pagination?.page || Number(params?.page || 1);
-    const limit = payload.data?.limit || payload.pagination?.limit || Number(params?.limit || 10);
-    const totalPages = Math.ceil(total / limit) || 1;
+    const rawList =
+      (Array.isArray(payload.data?.data) ? payload.data.data : null) ||
+      payload.data?.products ||
+      payload.products ||
+      (Array.isArray(payload.data) ? payload.data : []);
+    const total =
+      payload.data?.meta?.total ??
+      payload.data?.total ??
+      payload.pagination?.total ??
+      rawList.length;
+    const page =
+      payload.data?.meta?.page ??
+      payload.data?.page ??
+      payload.pagination?.page ??
+      Number(params?.page || 1);
+    const limit =
+      payload.data?.meta?.limit ??
+      payload.data?.limit ??
+      payload.pagination?.limit ??
+      Number(params?.limit || 10);
+    const totalPages =
+      payload.data?.meta?.totalPages ?? (Math.ceil(total / limit) || 1);
 
     return {
       products: rawList.map(mapBackendProductToFrontend),
@@ -361,7 +411,7 @@ export const ProductService = {
     for (let i = 0; i < imagesToCreate.length; i++) {
       const img = imagesToCreate[i];
       const imgUrl = typeof img === "string" ? img : (img.url || img.imageUrl);
-      if (imgUrl && (imgUrl.startsWith("http://") || imgUrl.startsWith("https://"))) {
+      if (imgUrl && typeof imgUrl === "string" && imgUrl.trim().length > 0) {
         try {
           await axiosClient.post(`/products/${createdProductId}/images`, {
             imageUrl: imgUrl,
@@ -450,5 +500,30 @@ export const ProductService = {
   uploadProductImageToApi: async (productId: string, imageData: { imageUrl: string; altText?: string; isPrimary?: boolean }) => {
     const res = await axiosClient.post(`/products/${productId}/images`, imageData);
     return res.data;
+  },
+
+  // Dry-run validate CSV import payload
+  validateCsvImportApi: async (rows: Record<string, any>[]): Promise<{
+    summary: {
+      totalRows: number;
+      validRows: number;
+      invalidRows: number;
+      duplicateSkus: number;
+      missingCategories: number;
+    };
+    errors: Array<{ row: number; sku: string; field: string; message: string; value: any }>;
+    validProducts: any[];
+  }> => {
+    const res = await axiosClient.post("/products/import/validate", { rows });
+    return res.data?.data || res.data;
+  },
+
+  // Execute batched product creation from valid CSV payload
+  executeCsvImportApi: async (validProducts: any[]): Promise<{
+    createdCount: number;
+    failedCount: number;
+  }> => {
+    const res = await axiosClient.post("/products/import/execute", { validProducts });
+    return res.data?.data || res.data;
   },
 };

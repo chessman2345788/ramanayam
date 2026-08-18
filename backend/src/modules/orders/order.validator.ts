@@ -30,10 +30,12 @@ export const cancelOrderSchema = z.object({
 });
 
 export const paginationSchema = z.object({
-  query: z.object({
-    page: z.coerce.number().int().min(1).default(1),
-    limit: z.coerce.number().int().min(1).max(100).default(10),
-  }),
+  query: z
+    .object({
+      page: z.coerce.number().int().min(1).default(1),
+      limit: z.coerce.number().int().min(1).max(100).default(10),
+    })
+    .default({}),
 });
 
 // ──────────────────────────────────────────────
@@ -45,12 +47,14 @@ export const adminOrderParamSchema = z.object({
 });
 
 export const adminOrderListSchema = z.object({
-  query: z.object({
-    page: z.coerce.number().int().min(1).default(1),
-    limit: z.coerce.number().int().min(1).max(100).default(10),
-    status: z.nativeEnum(OrderStatus).optional(),
-    userId: z.string().uuid("Invalid user ID format").optional(),
-  }),
+  query: z
+    .object({
+      page: z.coerce.number().int().min(1).default(1),
+      limit: z.coerce.number().int().min(1).max(100).default(10),
+      status: z.nativeEnum(OrderStatus).optional(),
+      userId: z.string().uuid("Invalid user ID format").optional(),
+    })
+    .default({}),
 });
 
 export const updateOrderStatusSchema = z.object({

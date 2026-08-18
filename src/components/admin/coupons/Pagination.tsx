@@ -9,6 +9,7 @@ interface PaginationProps {
   totalItems: number;
   pageSize: number;
   onPageChange: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
 }
 
 export function Pagination({
@@ -17,6 +18,7 @@ export function Pagination({
   totalItems,
   pageSize,
   onPageChange,
+  onPageSizeChange,
 }: PaginationProps) {
   if (totalItems === 0) return null;
 
@@ -24,92 +26,69 @@ export function Pagination({
   const endItem = Math.min(currentPage * pageSize, totalItems);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "12px 16px",
-        background: "#FFFFFF",
-        borderTop: "1px solid rgba(0,0,0,0.06)",
-        fontSize: 13,
-        color: "#666666",
-        flexWrap: "wrap",
-        gap: 10,
-      }}
-    >
-      <div>
-        Showing <span style={{ fontWeight: 600, color: "#171717" }}>{startItem}</span> to{" "}
-        <span style={{ fontWeight: 600, color: "#171717" }}>{endItem}</span> of{" "}
-        <span style={{ fontWeight: 600, color: "#171717" }}>{totalItems}</span> coupons
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white border-t border-stone-200 text-xs text-stone-600">
+      <div className="flex items-center gap-3">
+        <span>
+          Showing <span className="font-bold text-stone-900">{startItem}</span> to{" "}
+          <span className="font-bold text-stone-900">{endItem}</span> of{" "}
+          <span className="font-bold text-stone-900">{totalItems}</span> coupons
+        </span>
+
+        {onPageSizeChange && (
+          <div className="flex items-center gap-1.5 ml-2 border-l border-stone-200 pl-3">
+            <span className="text-[11px] text-stone-400">Rows per page:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => onPageSizeChange(Number(e.target.value))}
+              className="px-2 py-1 rounded-lg border border-stone-200 bg-stone-50 font-semibold text-stone-800 outline-none cursor-pointer"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+        )}
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <div className="flex items-center gap-1.5">
         <button
           type="button"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage <= 1}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-            padding: "5px 10px",
-            borderRadius: 6,
-            border: "1px solid rgba(0,0,0,0.12)",
-            background: currentPage <= 1 ? "#FAF8F3" : "#FFFFFF",
-            color: currentPage <= 1 ? "#BBBBBB" : "#171717",
-            cursor: currentPage <= 1 ? "not-allowed" : "pointer",
-            fontSize: 12,
-            fontWeight: 500,
-          }}
+          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 disabled:bg-stone-50 disabled:text-stone-300 text-stone-700 font-semibold transition-colors disabled:cursor-not-allowed cursor-pointer"
         >
-          <ChevronLeft size={14} /> Previous
+          <ChevronLeft className="w-4 h-4" /> Previous
         </button>
 
-        {Array.from({ length: totalPages }).map((_, idx) => {
-          const pageNum = idx + 1;
-          const isActive = pageNum === currentPage;
-          return (
-            <button
-              key={pageNum}
-              type="button"
-              onClick={() => onPageChange(pageNum)}
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: 6,
-                border: "none",
-                background: isActive ? "#F57C00" : "transparent",
-                color: isActive ? "#FFFFFF" : "#171717",
-                fontWeight: isActive ? 700 : 500,
-                fontSize: 12,
-                cursor: "pointer",
-              }}
-            >
-              {pageNum}
-            </button>
-          );
-        })}
+        <div className="flex items-center gap-1 px-1">
+          {Array.from({ length: totalPages }).map((_, idx) => {
+            const pageNum = idx + 1;
+            const isActive = pageNum === currentPage;
+            return (
+              <button
+                key={pageNum}
+                type="button"
+                onClick={() => onPageChange(pageNum)}
+                className={`w-7 h-7 rounded-lg font-bold text-xs transition-colors cursor-pointer ${
+                  isActive
+                    ? "bg-amber-600 text-white shadow-2xs"
+                    : "text-stone-700 hover:bg-stone-100"
+                }`}
+              >
+                {pageNum}
+              </button>
+            );
+          })}
+        </div>
 
         <button
           type="button"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage >= totalPages}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-            padding: "5px 10px",
-            borderRadius: 6,
-            border: "1px solid rgba(0,0,0,0.12)",
-            background: currentPage >= totalPages ? "#FAF8F3" : "#FFFFFF",
-            color: currentPage >= totalPages ? "#BBBBBB" : "#171717",
-            cursor: currentPage >= totalPages ? "not-allowed" : "pointer",
-            fontSize: 12,
-            fontWeight: 500,
-          }}
+          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 disabled:bg-stone-50 disabled:text-stone-300 text-stone-700 font-semibold transition-colors disabled:cursor-not-allowed cursor-pointer"
         >
-          Next <ChevronRight size={14} />
+          Next <ChevronRight className="w-4 h-4" />
         </button>
       </div>
     </div>

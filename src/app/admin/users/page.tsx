@@ -1,13 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Users, Shield, Lock, Unlock } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, Column } from "@/components/admin/AdminTable";
-import { mockAdminCustomers, AdminCustomer } from "@/data/mockAdminData";
+import { AdminCustomer } from "@/data/mockAdminData";
+import { AdminService } from "@/services/admin.service";
 
 export default function AdminCustomersPage() {
-  const [customers, setCustomers] = useState<AdminCustomer[]>(mockAdminCustomers);
+  const [customers, setCustomers] = useState<AdminCustomer[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadUsers() {
+      setIsLoading(true);
+      try {
+        const result = await AdminService.fetchUsersFromApi();
+        const apiUsers = result.data;
+        if (apiUsers && apiUsers.length > 0) {
+          const formatted: AdminCustomer[] = apiUsers.map((u: any) => ({
+            id: u.id,
+            name: `${u.firstName || ""} ${u.lastName || ""}`.trim() || u.email,
+            email: u.email,
+            phone: u.phone || "+91 98765 43210",
+            role: u.role || "CUSTOMER",
+            ordersCount: u._count?.orders || 0,
+            totalSpent: 0,
+            status: u.accountStatus || "ACTIVE",
+            joinedDate: new Date(u.createdAt).toLocaleDateString("en-IN", { month: "short", year: "numeric" }),
+          }));
+          setCustomers(formatted);
+        } else {
+          setCustomers([]);
+        }
+      } catch (err) {
+        console.error("Failed to load users from API:", err);
+        setCustomers([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadUsers();
+  }, []);
 
   const toggleStatus = (id: string) => {
     setCustomers(

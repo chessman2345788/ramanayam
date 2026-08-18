@@ -1,4 +1,5 @@
 import { Router } from "express";
+import express from "express";
 import { ProductController } from "./product.controller";
 import { ProductService } from "./product.service";
 import { ProductRepository } from "./product.repository";
@@ -43,6 +44,29 @@ router.get("/search", validateRequest(searchProductsQuerySchema), controller.sea
 router.get("/slug/:slug", validateRequest(productSlugParamSchema), controller.getProductBySlug);
 router.get("/id/:id", validateRequest(productIdParamSchema), controller.getProductById);
 router.get("/category/:categoryId", validateRequest(categoryProductsSchema), controller.getCategoryProducts);
+
+// ==========================================
+// CSV Import Routes (Admin Only)
+// Route-specific body limit override: 10 MB for bulk catalogue imports.
+// The global limit remains 50 kb for all other routes (DoS protection).
+// ==========================================
+const bulkJsonParser = express.json({ limit: "10mb" });
+
+router.post(
+  "/import/validate",
+  bulkJsonParser,
+  authenticate,
+  authorize(["ADMIN"]),
+  controller.validateCsvImport,
+);
+
+router.post(
+  "/import/execute",
+  bulkJsonParser,
+  authenticate,
+  authorize(["ADMIN"]),
+  controller.executeCsvImport,
+);
 
 // ==========================================
 // Product Protected Routes (Admin/Vendor)

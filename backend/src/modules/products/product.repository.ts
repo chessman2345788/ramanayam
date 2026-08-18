@@ -477,4 +477,126 @@ export class ProductRepository {
       where: { productId_collectionId: { productId, collectionId } },
     });
   }
+
+  // ==========================================
+  // CSV Import Operations
+  // ==========================================
+
+  async findAllCategories(): Promise<{ id: string; name: string; slug: string }[]> {
+    return this.prisma.category.findMany({
+      select: { id: true, name: true, slug: true },
+    });
+  }
+
+  async findExistingSkus(skus: string[]): Promise<string[]> {
+    if (skus.length === 0) return [];
+    const variants = await this.prisma.productVariant.findMany({
+      where: { sku: { in: skus } },
+      select: { sku: true },
+    });
+    return variants.map((v) => v.sku);
+  }
+
+  async findDefaultVendorId(): Promise<string> {
+    const vendor = await this.prisma.vendor.findFirst({
+      orderBy: { createdAt: "asc" },
+      select: { id: true },
+    });
+    if (!vendor) {
+      // Create fallback primary store vendor if none exists
+      const newVendor = await this.prisma.vendor.create({
+        data: {
+          businessName: "Ramanayam Flagship Store",
+          slug: "ramanayam-flagship",
+          ownerName: "Ramanayam Administrator",
+          email: "store@ramayanam.in",
+          phone: "+919876543210",
+          status: "ACTIVE",
+          isVerified: true,
+        },
+        select: { id: true },
+      });
+      return newVendor.id;
+    }
+    return vendor.id;
+  }
+
+  async batchImportProducts(
+    products: Array<{
+      name: string;
+      slug: string;
+      description?: string;
+      shortDescription?: string;
+      categoryId: string;
+      vendorId: string;
+      status: any;
+      featured?: boolean;
+      seoTitle?: string;
+      seoDescription?: string;
+      sku: string;
+      price: number;
+      compareAtPrice?: number;
+      weight?: number;
+      stock: number;
+      images: string[];
+    }>,
+  ): Promise<number> {
+    let createdCount = 0;
+    // Process in safe transactions of up to 50 products per batch
+    const batchSize = 50;
+
+    for (let i = 0; i < products.length; i += batchSize) {
+      const batch = products.slice(i, i + batchSize);
+      await this.prisma.$transaction(async (tx) => {
+        for (const item of batch) {
+          const product = await tx.product.create({
+            data: {
+              name: item.name,
+              slug: item.slug,
+              description: item.description || null,
+              shortDescription: item.shortDescription || null,
+              categoryId: item.categoryId,
+              vendorId: item.vendorId,
+              status: item.status || "ACTIVE",
+              featured: item.featured || false,
+              seoTitle: item.seoTitle || null,
+              seoDescription: item.seoDescription || null,
+              variants: {
+                create: {
+                  sku: item.sku,
+                  variantName: "Standard",
+                  price: item.price,
+                  compareAtPrice: item.compareAtPrice || null,
+                  weight: item.weight || null,
+                  isDefault: true,
+                  isActive: true,
+                  inventory: {
+                    create: {
+                      availableStock: item.stock,
+                      reservedStock: 0,
+                      soldStock: 0,
+                    },
+                  },
+                },
+              },
+              ...(item.images && item.images.length > 0
+                ? {
+                    images: {
+                      create: item.images.map((url, idx) => ({
+                        imageUrl: url,
+                        isPrimary: idx === 0,
+                        sortOrder: idx,
+                      })),
+                    },
+                  }
+                : {}),
+            },
+          });
+          if (product) createdCount++;
+        }
+      });
+    }
+
+    return createdCount;
+  }
 }

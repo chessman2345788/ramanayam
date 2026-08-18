@@ -1,6 +1,18 @@
-export type CouponStatus = "ACTIVE" | "SCHEDULED" | "EXPIRED" | "DISABLED";
-export type DiscountType = "PERCENTAGE" | "FIXED_AMOUNT" | "FREE_SHIPPING" | "BUY_X_GET_Y";
-export type CustomerTypeEligibility = "ALL" | "NEW" | "RETURNING" | "VIP";
+export type CouponStatus = "ACTIVE" | "SCHEDULED" | "EXPIRED" | "DISABLED" | "DRAFT";
+export type DiscountType = "PERCENTAGE" | "FIXED_AMOUNT" | "PRODUCT_SPECIFIC" | "CATEGORY_SPECIFIC" | "FREE_SHIPPING";
+export type ApplicabilityType = "ENTIRE_STORE" | "SPECIFIC_PRODUCTS" | "SPECIFIC_CATEGORIES" | "SPECIFIC_COLLECTIONS" | "SPECIFIC_CUSTOMERS";
+
+export interface CouponUsageRecord {
+  id: string;
+  orderId: string;
+  couponCode: string;
+  customerName: string;
+  customerEmail: string;
+  customerAvatar?: string;
+  discountAmount: number;
+  orderAmount: number;
+  usedAt: string;
+}
 
 export interface FestivalTemplate {
   id: string;
@@ -40,16 +52,20 @@ export interface AdminCouponDetail {
   totalDiscountAmount: number;
 
   status: CouponStatus;
-  customerEligibility: CustomerTypeEligibility;
+  applicability: ApplicabilityType;
   
   startDate: string;
+  startTime?: string;
   endDate: string;
-  timezone: string;
+  endTime?: string;
+  timezone?: string;
   createdBy: string;
 
   applicableCategories: string[];
   applicableProducts: string[];
-  excludedProducts: string[];
+  applicableCollections?: string[];
+  applicableCustomers?: string[];
+  excludedProducts?: string[];
 
   timeline: CouponTimelineEvent[];
 }
@@ -92,45 +108,12 @@ export const mockFestivalTemplates: FestivalTemplate[] = [
     id: "tmpl_navratri",
     festivalName: "Sharad Navratri",
     recommendedCode: "NAVRATRIFREE",
-    campaignName: "Sharad Navratri Free Express Shipping",
-    description: "Free Shipping on All Akhand Diyas & Incense Orders",
-    discountType: "FREE_SHIPPING",
-    value: 0,
+    campaignName: "Sharad Navratri Special Offer",
+    description: "Flat ₹250 OFF on All Akhand Diyas & Incense Orders",
+    discountType: "FIXED_AMOUNT",
+    value: 250,
     minOrderValue: 799,
     color: "#D97706",
-  },
-  {
-    id: "tmpl_shivratri",
-    festivalName: "Maha Shivratri",
-    recommendedCode: "SHIVRATRI15",
-    campaignName: "Maha Shivratri Sacred Offer",
-    description: "15% OFF on Narmada Shivling & Brass Yoni Base",
-    discountType: "PERCENTAGE",
-    value: 15,
-    minOrderValue: 1299,
-    color: "#4C1D95",
-  },
-  {
-    id: "tmpl_raksha",
-    festivalName: "Raksha Bandhan",
-    recommendedCode: "RAKHI20",
-    campaignName: "Divine Rakhi Thali Promotion",
-    description: "20% OFF on Silver Coated Divine Rakhi Thalis",
-    discountType: "PERCENTAGE",
-    value: 20,
-    minOrderValue: 899,
-    color: "#BE185D",
-  },
-  {
-    id: "tmpl_griha",
-    festivalName: "Griha Pravesh",
-    recommendedCode: "GRIHAPRAVESH500",
-    campaignName: "Griha Pravesh Home Temple Blessing",
-    description: "Flat ₹500 OFF on Carved Teakwood Mandir",
-    discountType: "FIXED_AMOUNT",
-    value: 500,
-    minOrderValue: 4999,
-    color: "#15803D",
   },
 ];
 
@@ -151,9 +134,11 @@ export const mockCouponsList: AdminCouponDetail[] = [
     revenueGenerated: 4260000,
     totalDiscountAmount: 890000,
     status: "ACTIVE",
-    customerEligibility: "ALL",
+    applicability: "SPECIFIC_CATEGORIES",
     startDate: "2026-10-10",
+    startTime: "00:00",
     endDate: "2026-11-05",
+    endTime: "23:59",
     timezone: "Asia/Kolkata (IST)",
     createdBy: "Ramanayam Marketing Lead",
     applicableCategories: ["Brass Diyas & Lamps", "Temple Decor & Idols"],
@@ -192,9 +177,11 @@ export const mockCouponsList: AdminCouponDetail[] = [
     revenueGenerated: 2940000,
     totalDiscountAmount: 612000,
     status: "SCHEDULED",
-    customerEligibility: "ALL",
-    startDate: "2026-08-10",
-    endDate: "2026-08-25",
+    applicability: "SPECIFIC_CATEGORIES",
+    startDate: "2026-08-20",
+    startTime: "09:00",
+    endDate: "2026-08-28",
+    endTime: "23:59",
     timezone: "Asia/Kolkata (IST)",
     createdBy: "Senior Merchant Admin",
     applicableCategories: ["Sacred Food & Prasadam", "Temple Decor & Idols"],
@@ -226,9 +213,11 @@ export const mockCouponsList: AdminCouponDetail[] = [
     revenueGenerated: 3410000,
     totalDiscountAmount: 341000,
     status: "ACTIVE",
-    customerEligibility: "NEW",
+    applicability: "ENTIRE_STORE",
     startDate: "2026-01-01",
+    startTime: "00:00",
     endDate: "2026-12-31",
+    endTime: "23:59",
     timezone: "Asia/Kolkata (IST)",
     createdBy: "Growth Manager",
     applicableCategories: ["All Categories"],
@@ -259,9 +248,11 @@ export const mockCouponsList: AdminCouponDetail[] = [
     revenueGenerated: 2340000,
     totalDiscountAmount: 210600,
     status: "EXPIRED",
-    customerEligibility: "ALL",
+    applicability: "SPECIFIC_CATEGORIES",
     startDate: "2026-03-20",
+    startTime: "00:00",
     endDate: "2026-03-30",
+    endTime: "23:59",
     timezone: "Asia/Kolkata (IST)",
     createdBy: "Ramanayam Marketing Lead",
     applicableCategories: ["Mala & Rudraksha Beads"],
@@ -292,9 +283,11 @@ export const mockCouponsList: AdminCouponDetail[] = [
     revenueGenerated: 2100000,
     totalDiscountAmount: 210000,
     status: "ACTIVE",
-    customerEligibility: "VIP",
+    applicability: "SPECIFIC_CUSTOMERS",
     startDate: "2026-05-01",
+    startTime: "09:00",
     endDate: "2026-12-31",
+    endTime: "23:59",
     timezone: "Asia/Kolkata (IST)",
     createdBy: "CRM Manager",
     applicableCategories: ["All Categories"],
@@ -312,35 +305,83 @@ export const mockCouponsList: AdminCouponDetail[] = [
   },
   {
     id: "coup_006",
-    code: "FREESHIP799",
-    campaignName: "Monsoon Puja Free Express Shipping",
-    description: "Free express shipping nationwide on orders above ₹799.",
-    discountType: "FREE_SHIPPING",
-    value: 0,
-    minOrderValue: 799,
-    usageCount: 650,
-    usageLimit: 1000,
-    perCustomerLimit: 2,
-    usedTodayCount: 14,
-    revenueGenerated: 975000,
-    totalDiscountAmount: 65000,
+    code: "PUJATIME50",
+    campaignName: "Puja Utensils Special Promotion",
+    description: "Flat ₹50 OFF on Ashtalakshmi Puja Thali Sets.",
+    discountType: "PRODUCT_SPECIFIC",
+    value: 50,
+    minOrderValue: 500,
+    usageCount: 120,
+    usageLimit: 500,
+    perCustomerLimit: 1,
+    usedTodayCount: 2,
+    revenueGenerated: 348000,
+    totalDiscountAmount: 6000,
     status: "DISABLED",
-    customerEligibility: "ALL",
+    applicability: "SPECIFIC_PRODUCTS",
     startDate: "2026-07-01",
-    endDate: "2026-07-31",
+    startTime: "00:00",
+    endDate: "2026-09-30",
+    endTime: "23:59",
     timezone: "Asia/Kolkata (IST)",
-    createdBy: "Logistics Admin",
-    applicableCategories: ["Incense & Pure Dhoop", "Puja Utensils & Sets"],
-    applicableProducts: [],
+    createdBy: "Merchant Ops",
+    applicableCategories: ["Puja Utensils & Sets"],
+    applicableProducts: ["Pure Brass Ashtalakshmi Puja Thali Set with Bell"],
     excludedProducts: [],
     timeline: [
       {
         id: "t_1",
         title: "Campaign Disabled",
-        description: "Disabled manually by Admin during courier partner renegotiation.",
-        timestamp: "31 Jul 2026, 05:00 PM",
-        actor: "Logistics Admin",
+        description: "Temporarily disabled for inventory audit.",
+        timestamp: "01 Aug 2026, 11:00 AM",
+        actor: "Merchant Ops",
       },
     ],
+  },
+];
+
+export const mockCouponUsages: CouponUsageRecord[] = [
+  {
+    id: "usg_101",
+    orderId: "ORD-94821",
+    couponCode: "DIWALI2026",
+    customerName: "Pandit Rajesh Sharma",
+    customerEmail: "rajesh.sharma@templeorg.in",
+    customerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+    discountAmount: 1500,
+    orderAmount: 12999,
+    usedAt: "2026-08-01 14:32",
+  },
+  {
+    id: "usg_102",
+    orderId: "ORD-94710",
+    couponCode: "DIWALI2026",
+    customerName: "Sunita Deshmukh",
+    customerEmail: "sunita.d@gmail.com",
+    customerAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80",
+    discountAmount: 1050,
+    orderAmount: 3499,
+    usedAt: "2026-07-25 11:15",
+  },
+  {
+    id: "usg_103",
+    orderId: "ORD-94612",
+    couponCode: "WELCOME10",
+    customerName: "Meera Agarwal",
+    customerEmail: "meera.agarwal@gmail.com",
+    customerAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
+    discountAmount: 70,
+    orderAmount: 699,
+    usedAt: "2026-07-20 18:40",
+  },
+  {
+    id: "usg_104",
+    orderId: "ORD-94500",
+    couponCode: "VIPDEVOTEE",
+    customerName: "Dr. Mahesh Kulkarni",
+    customerEmail: "mkulkarni@aiims.edu",
+    discountAmount: 500,
+    orderAmount: 4999,
+    usedAt: "2026-07-18 09:20",
   },
 ];

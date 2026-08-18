@@ -13,4 +13,5 @@ export interface FestivalCampaign {
   salesGenerated: string;
   ordersCount: number;
   description: string;
+
 }

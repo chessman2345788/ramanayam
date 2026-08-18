@@ -1,5 +1,5 @@
-export type RoleStatus = "ACTIVE" | "DISABLED";
-export type StaffStatus = "ACTIVE" | "INVITED";
+export type RoleStatus = "ACTIVE" | "DISABLED" | "INACTIVE";
+export type StaffStatus = "ACTIVE" | "INVITED" | "SUSPENDED";
 
 export interface PermissionAction {
   key: string;
@@ -16,14 +16,14 @@ export interface AdminRoleDetail {
   id: string;
   name: string;
   description: string;
-  color: string;
-  iconName: string;
-  isSystemRole: boolean;
+  color?: string;
+  iconName?: string;
+  isSystemRole?: boolean;
   status: RoleStatus;
   usersCount: number;
-  permissionsCount: number;
+  permissionsCount?: number;
   createdAt: string;
-  permissions: Record<string, string[]>;
+  permissions: any;
 }
 
 export interface StaffUserItem {
@@ -33,6 +33,7 @@ export interface StaffUserItem {
   roleId: string;
   roleName: string;
   status: StaffStatus;
-  lastActive: string;
-  avatar: string;
+  lastActive?: string;
+  avatar?: string;
+  joinedDate?: string;
 }

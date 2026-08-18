@@ -27,8 +27,26 @@ export class CartRepository {
   }
 
   async findVariantDetails(variantId: string) {
-    return this.prisma.productVariant.findUnique({
+    const variant = await this.prisma.productVariant.findUnique({
       where: { id: variantId },
+      include: {
+        product: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            status: true,
+            images: { where: { isPrimary: true }, take: 1 },
+          },
+        },
+        inventory: true,
+      },
+    });
+
+    if (variant) return variant;
+
+    return this.prisma.productVariant.findFirst({
+      where: { productId: variantId },
       include: {
         product: {
           select: {

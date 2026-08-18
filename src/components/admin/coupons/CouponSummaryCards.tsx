@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { CheckCircle2, Calendar, Clock, Sparkles, DollarSign, Percent } from "lucide-react";
+import { Tag, CheckCircle2, Clock, XCircle, Users, IndianRupee } from "lucide-react";
 import { AdminCouponDetail } from "@/data/mockCouponsData";
 
 interface CouponSummaryCardsProps {
@@ -9,78 +9,86 @@ interface CouponSummaryCardsProps {
 }
 
 export function CouponSummaryCards({ coupons }: CouponSummaryCardsProps) {
-  const activeCount = coupons.filter((c) => c.status === "ACTIVE").length;
-  const scheduledCount = coupons.filter((c) => c.status === "SCHEDULED").length;
-  const expiredCount = coupons.filter((c) => c.status === "EXPIRED" || c.status === "DISABLED").length;
-
-  const usedToday = coupons.reduce((acc, c) => acc + c.usedTodayCount, 0);
+  const totalCoupons = coupons.length;
+  const activeCoupons = coupons.filter((c) => c.status === "ACTIVE").length;
+  const scheduledCoupons = coupons.filter((c) => c.status === "SCHEDULED").length;
+  const expiredCoupons = coupons.filter((c) => c.status === "EXPIRED").length;
+  const totalRedemptions = coupons.reduce((acc, c) => acc + c.usageCount, 0);
   const totalDiscountGiven = coupons.reduce((acc, c) => acc + c.totalDiscountAmount, 0);
-  
-  // Calculate average conversion rate or fixed metric
-  const avgConversion = "14.2%";
 
   const cards = [
-    { title: "Active Coupons", value: activeCount, icon: CheckCircle2, color: "#16A34A", bg: "rgba(22,163,74,0.08)" },
-    { title: "Scheduled Coupons", value: scheduledCount, icon: Calendar, color: "#0284C7", bg: "rgba(2,132,199,0.08)" },
-    { title: "Expired / Disabled", value: expiredCount, icon: Clock, color: "#6B7280", bg: "rgba(107,114,128,0.08)" },
-    { title: "Coupons Used Today", value: `${usedToday} redemptions`, icon: Sparkles, color: "#F57C00", bg: "rgba(245,124,0,0.08)" },
-    { title: "Total Discount Given", value: `₹${(totalDiscountGiven / 100000).toFixed(2)}L`, icon: DollarSign, color: "#701A75", bg: "rgba(112,26,117,0.08)" },
-    { title: "Conversion Rate", value: avgConversion, icon: Percent, color: "#D4AF37", bg: "rgba(212,175,55,0.1)" },
+    {
+      title: "Total Coupons",
+      value: totalCoupons,
+      subtitle: "All created campaigns",
+      icon: Tag,
+      iconBg: "bg-stone-100 text-stone-800 border-stone-200",
+      valueColor: "text-stone-900",
+    },
+    {
+      title: "Active Coupons",
+      value: activeCoupons,
+      subtitle: "Live & redeemable",
+      icon: CheckCircle2,
+      iconBg: "bg-emerald-50 text-emerald-600 border-emerald-200",
+      valueColor: "text-emerald-600",
+    },
+    {
+      title: "Scheduled Coupons",
+      value: scheduledCoupons,
+      subtitle: "Upcoming promotions",
+      icon: Clock,
+      iconBg: "bg-amber-50 text-amber-600 border-amber-200",
+      valueColor: "text-amber-600",
+    },
+    {
+      title: "Expired Coupons",
+      value: expiredCoupons,
+      subtitle: "Ended or limits met",
+      icon: XCircle,
+      iconBg: "bg-rose-50 text-rose-600 border-rose-200",
+      valueColor: "text-rose-600",
+    },
+    {
+      title: "Total Redemptions",
+      value: totalRedemptions.toLocaleString("en-IN"),
+      subtitle: "Times coupons used",
+      icon: Users,
+      iconBg: "bg-purple-50 text-purple-600 border-purple-200",
+      valueColor: "text-purple-600",
+    },
+    {
+      title: "Total Discount Given",
+      value: `₹${totalDiscountGiven.toLocaleString("en-IN")}`,
+      subtitle: "Customer savings",
+      icon: IndianRupee,
+      iconBg: "bg-amber-50 text-amber-700 border-amber-200",
+      valueColor: "text-amber-700",
+    },
   ];
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-        gap: 14,
-      }}
-    >
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
       {cards.map((card) => {
         const IconComponent = card.icon;
         return (
           <div
             key={card.title}
-            style={{
-              background: "#FFFFFF",
-              borderRadius: 14,
-              border: "1px solid rgba(0,0,0,0.06)",
-              padding: "14px 16px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              gap: 10,
-              transition: "transform 0.15s ease, box-shadow 0.15s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,0,0,0.06)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.03)";
-            }}
+            className="bg-white rounded-2xl border border-stone-200/90 p-4 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col justify-between gap-3 group"
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: "#666666" }}>{card.title}</span>
-              <div
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 6,
-                  background: card.bg,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: card.color,
-                }}
-              >
-                <IconComponent size={15} />
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">{card.title}</span>
+              <div className={`w-8 h-8 rounded-xl border flex items-center justify-center transition-transform group-hover:scale-105 ${card.iconBg}`}>
+                <IconComponent className="w-4 h-4" />
               </div>
             </div>
 
-            <div style={{ fontSize: 20, fontWeight: 800, color: card.color }}>{card.value}</div>
+            <div>
+              <div className={`text-2xl font-extrabold font-display ${card.valueColor}`}>
+                {card.value}
+              </div>
+              <p className="text-[11px] font-medium text-stone-400 mt-0.5">{card.subtitle}</p>
+            </div>
           </div>
         );
       })}
