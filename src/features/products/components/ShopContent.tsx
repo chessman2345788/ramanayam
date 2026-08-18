@@ -18,6 +18,7 @@ export function ShopContent() {
     pagedProducts,
     hasMore,
     currentCategoryName,
+    categoriesList,
     setSearchQuery,
     setSort,
     setLimit,
@@ -163,6 +164,7 @@ export function ShopContent() {
               setMaxPrice={setMaxPrice}
               setMinRating={setMinRating}
               toggleInStockOnly={toggleInStockOnly}
+              categories={categoriesList}
             />
           </aside>
 

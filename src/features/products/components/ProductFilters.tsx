@@ -1,5 +1,6 @@
 import { Check, Star, X, Search } from "lucide-react";
 import { ProductService } from "@/services/product.service";
+import type { Category } from "@/types/products";
 import type { FilterState } from "../hooks/useProducts";
 
 interface ProductFiltersProps {
@@ -10,6 +11,32 @@ interface ProductFiltersProps {
   setMaxPrice: (price: number) => void;
   setMinRating: (rating: number) => void;
   toggleInStockOnly: () => void;
+  categories?: Category[];
+}
+
+const CATEGORY_ALIASES: Record<string, string[]> = {
+  "idols-murtis": ["idols-murtis", "murti", "idols-shrines", "mandir"],
+  "murti": ["murti", "idols-murtis", "idols-shrines", "mandir"],
+  "puja-brassware": ["puja-brassware", "brass-copper-items", "pooja-thali-accessories"],
+  "brass-copper-items": ["brass-copper-items", "puja-brassware", "pooja-thali-accessories"],
+  "incense-fragrances": ["incense-fragrances", "home-fragrance"],
+  "home-fragrance": ["home-fragrance", "incense-fragrances"],
+  "samagri-kits": ["samagri-kits", "pooja-samagri", "pooja-kits"],
+  "pooja-samagri": ["pooja-samagri", "samagri-kits", "pooja-kits"],
+  "temple-decor": ["temple-decor", "temple-decoration"],
+  "temple-decoration": ["temple-decoration", "temple-decor"],
+};
+
+function isCategoryActive(catSlug: string, catId?: string, filterCategories: string[] = []): boolean {
+  if (filterCategories.includes(catSlug) || (catId && filterCategories.includes(catId))) {
+    return true;
+  }
+  const cLower = catSlug.toLowerCase();
+  const aliases = CATEGORY_ALIASES[cLower] || [];
+  return filterCategories.some((fc) => {
+    const fcLower = fc.toLowerCase();
+    return fcLower === cLower || aliases.includes(fcLower);
+  });
 }
 
 export function ProductFilters({
@@ -20,8 +47,10 @@ export function ProductFilters({
   setMaxPrice,
   setMinRating,
   toggleInStockOnly,
+  categories: customCategories,
 }: ProductFiltersProps) {
-  const categories = ProductService.getCategories();
+  const defaultCategories = ProductService.getCategories();
+  const categories = customCategories && customCategories.length > 0 ? customCategories : defaultCategories;
 
   return (
     <>
@@ -94,10 +123,10 @@ export function ProductFilters({
       <div style={{ marginBottom: 32 }}>
         <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 16 }}>Categories</p>
         {categories.map((cat) => {
-          const active = filters.categories.includes(cat.slug);
+          const active = isCategoryActive(cat.slug, cat.id, filters.categories);
           return (
             <button
-              key={cat.slug}
+              key={cat.slug || cat.id}
               onClick={() => handleCategoryToggle(cat.slug)}
               aria-pressed={active}
               style={{
@@ -105,7 +134,7 @@ export function ProductFilters({
                 alignItems: 'center',
                 gap: 12,
                 width: '100%',
-                padding: '10px 0',
+                padding: '8px 0',
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
@@ -114,21 +143,29 @@ export function ProductFilters({
             >
               <div
                 style={{
-                  width: 18,
-                  height: 18,
-                  borderRadius: 5,
-                  border: `1.5px solid ${active ? 'var(--accent-saffron)' : 'var(--border-strong)'}`,
-                  background: active ? 'var(--accent-saffron)' : 'transparent',
+                  width: 20,
+                  height: 20,
+                  borderRadius: 6,
+                  border: active ? '2px solid #B45309' : '1.5px solid rgba(26, 15, 10, 0.35)',
+                  background: active ? '#B45309' : '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  transition: 'all 0.2s',
+                  transition: 'all 0.2s ease',
+                  boxShadow: active ? '0 2px 4px rgba(180, 83, 9, 0.25)' : '0 1px 2px rgba(0, 0, 0, 0.05)',
                   flexShrink: 0,
                 }}
               >
-                {active && <Check size={11} color="white" strokeWidth={3} />}
+                {active && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
               </div>
-              <span style={{ fontSize: 14, color: active ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+              <span
+                style={{
+                  fontSize: 14,
+                  fontWeight: active ? 600 : 400,
+                  color: active ? '#1A0F0A' : 'rgba(26, 15, 10, 0.75)',
+                  transition: 'color 0.2s',
+                }}
+              >
                 {cat.name}
               </span>
             </button>
@@ -215,21 +252,28 @@ export function ProductFilters({
       >
         <div
           style={{
-            width: 18,
-            height: 18,
-            borderRadius: 5,
-            border: `1.5px solid ${filters.inStockOnly ? 'var(--accent-saffron)' : 'var(--border-strong)'}`,
-            background: filters.inStockOnly ? 'var(--accent-saffron)' : 'transparent',
+            width: 20,
+            height: 20,
+            borderRadius: 6,
+            border: filters.inStockOnly ? '2px solid #B45309' : '1.5px solid rgba(26, 15, 10, 0.35)',
+            background: filters.inStockOnly ? '#B45309' : '#FFFFFF',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            transition: 'all 0.2s',
+            transition: 'all 0.2s ease',
+            boxShadow: filters.inStockOnly ? '0 2px 4px rgba(180, 83, 9, 0.25)' : '0 1px 2px rgba(0, 0, 0, 0.05)',
             flexShrink: 0,
           }}
         >
-          {filters.inStockOnly && <Check size={11} color="white" strokeWidth={3} />}
+          {filters.inStockOnly && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
         </div>
-        <span style={{ fontSize: 14, fontWeight: 500, color: filters.inStockOnly ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+        <span
+          style={{
+            fontSize: 14,
+            fontWeight: filters.inStockOnly ? 600 : 400,
+            color: filters.inStockOnly ? '#1A0F0A' : 'rgba(26, 15, 10, 0.75)',
+          }}
+        >
           In Stock Only
         </span>
       </button>

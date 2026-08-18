@@ -129,7 +129,7 @@ export class ProductService {
     page = 1,
     limit = 10,
   ): Promise<PaginationResult<Product>> {
-    const validLimit = Math.min(Math.max(limit, 1), 50);
+    const validLimit = Math.min(Math.max(limit, 1), 2000);
     const validPage = Math.max(page, 1);
     const skip = (validPage - 1) * validLimit;
 

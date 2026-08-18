@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { ProductService } from "@/services/product.service";
-import type { Product } from "@/types/products";
+import type { Product, Category } from "@/types/products";
 import { matchesSearchQuery } from "@/lib/searchUtils";
 
 export type SortOption = "popular" | "price-asc" | "price-desc" | "rating" | "newest";
@@ -13,6 +13,19 @@ export interface FilterState {
   inStockOnly: boolean;
 }
 
+const CATEGORY_ALIASES: Record<string, string[]> = {
+  "idols-murtis": ["idols-murtis", "murti", "idols-shrines", "mandir"],
+  "murti": ["murti", "idols-murtis", "idols-shrines", "mandir"],
+  "puja-brassware": ["puja-brassware", "brass-copper-items", "pooja-thali-accessories"],
+  "brass-copper-items": ["brass-copper-items", "puja-brassware", "pooja-thali-accessories"],
+  "incense-fragrances": ["incense-fragrances", "home-fragrance"],
+  "home-fragrance": ["home-fragrance", "incense-fragrances"],
+  "samagri-kits": ["samagri-kits", "pooja-samagri", "pooja-kits"],
+  "pooja-samagri": ["pooja-samagri", "samagri-kits", "pooja-kits"],
+  "temple-decor": ["temple-decor", "temple-decoration"],
+  "temple-decoration": ["temple-decoration", "temple-decor"],
+};
+
 export function useProducts() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get("category");
@@ -20,13 +33,23 @@ export function useProducts() {
   const localProducts = ProductService.getProducts();
 
   const [apiProducts, setApiProducts] = useState<Product[]>([]);
+  const [categoriesList, setCategoriesList] = useState<Category[]>(ProductService.getCategories());
 
   useEffect(() => {
-    // Fetch complete catalogue from API (up to 100 limit)
-    ProductService.fetchProductsFromApi({ limit: 100 })
+    // Fetch complete catalogue from API (up to 1000 limit)
+    ProductService.fetchProductsFromApi({ limit: 1000 })
       .then((res) => {
         if (res.products && Array.isArray(res.products) && res.products.length > 0) {
           setApiProducts(res.products as unknown as Product[]);
+        }
+      })
+      .catch(() => {});
+
+    // Fetch dynamic categories from API
+    ProductService.fetchCategoriesFromApi()
+      .then((cats) => {
+        if (Array.isArray(cats) && cats.length > 0) {
+          setCategoriesList(cats);
         }
       })
       .catch(() => {});
@@ -94,10 +117,31 @@ export function useProducts() {
       result = result.filter((p) => matchesSearchQuery(searchQuery, p as any));
     }
     if (filters.categories.length > 0) {
-      result = result.filter((p) =>
-        filters.categories.includes(p.categorySlug) ||
-        filters.categories.some((c) => p.categorySlug?.includes(c) || c.includes(p.categorySlug || ""))
-      );
+      const targetCategorySlugs = new Set<string>();
+      filters.categories.forEach((cat) => {
+        const cLower = cat.toLowerCase();
+        targetCategorySlugs.add(cLower);
+        if (CATEGORY_ALIASES[cLower]) {
+          CATEGORY_ALIASES[cLower].forEach((alias) => targetCategorySlugs.add(alias.toLowerCase()));
+        }
+      });
+
+      result = result.filter((p) => {
+        const pSlug = (p.categorySlug || "").toLowerCase();
+        const pName = (p.category || "").toLowerCase();
+        const pCatId = (p.categoryId || "").toLowerCase();
+
+        return Array.from(targetCategorySlugs).some((target) => {
+          return (
+            pSlug === target ||
+            pSlug.includes(target) ||
+            target.includes(pSlug) ||
+            pName.includes(target.replace(/-/g, " ")) ||
+            target.replace(/-/g, " ").includes(pName) ||
+            pCatId === target
+          );
+        });
+      });
     }
     result = result.filter((p) => p.price <= filters.maxPrice);
     if (filters.minRating > 0) {
@@ -133,12 +177,13 @@ export function useProducts() {
 
   const currentCategoryName = useMemo(() => {
     if (filters.categories.length === 1) {
-      const categoriesList = ProductService.getCategories();
-      const cat = categoriesList.find((c) => c.slug === filters.categories[0]);
-      return cat ? cat.name : null;
+      const selectedSlug = filters.categories[0];
+      const cat = categoriesList.find((c) => c.slug === selectedSlug || c.id === selectedSlug);
+      if (cat) return cat.name;
+      return selectedSlug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
     }
     return null;
-  }, [filters.categories]);
+  }, [filters.categories, categoriesList]);
 
   return {
     filters,
@@ -150,6 +195,7 @@ export function useProducts() {
     pagedProducts,
     hasMore,
     currentCategoryName,
+    categoriesList,
     setSearchQuery,
     setSort,
     setLimit,

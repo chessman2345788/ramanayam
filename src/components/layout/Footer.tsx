@@ -49,13 +49,30 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Bottom Sanskrit blessing & Copyright */}
+        {/* Bottom Sanskrit blessing, Copyright & Developer Credit */}
         <div style={{ marginTop: 36, paddingTop: 24, borderTop: '0.5px solid rgba(26,15,10,0.08)', textAlign: 'center' }}>
           <p style={{ fontSize: 13, color: 'rgba(26,15,10,0.40)', margin: 0, fontFamily: '"Cormorant Garamond", Georgia, serif', fontStyle: 'italic' }}>
             ‖ श्रद्धा और शिल्प ‖
           </p>
-          <p style={{ fontSize: 12, color: 'rgba(26,15,10,0.30)', margin: '6px 0 0' }}>
+          <p style={{ fontSize: 12, color: 'rgba(26,15,10,0.45)', margin: '6px 0 0' }}>
             © {new Date().getFullYear()} Ramanayam. All rights reserved.
+            <span style={{ margin: '0 8px', opacity: 0.5 }}>•</span>
+            Developed by{' '}
+            <a
+              href="https://www.linkedin.com/in/harsh-kumar-mishra-8163b833b"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: '#B45309',
+                fontWeight: 600,
+                textDecoration: 'none',
+                transition: 'color 0.2s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+              onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+            >
+              Harsh Kumar Mishra
+            </a>
           </p>
         </div>
       </div>
