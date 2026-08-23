@@ -3,6 +3,37 @@ import type { Product, ProductStatus } from "@/components/admin/products/types/p
 import { products as localProducts, categories as localCategories } from "@/data/products";
 import type { Category } from "@/types/products";
 
+/**
+ * Server-side proxy fetch for public GET endpoints.
+ * Routes through /api/proxy/... to bypass CORS restrictions
+ * (Render backend only allows https://ramayanam.in as Origin).
+ * Falls back to direct axiosClient call if the proxy fails.
+ */
+const proxyGet = async (path: string, params?: Record<string, any>): Promise<any> => {
+  // Build query string from params
+  const qs = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null) qs.set(k, String(v));
+    });
+  }
+  const queryString = qs.toString();
+  const proxyUrl = `/api/proxy/${path}${queryString ? `?${queryString}` : ""}`;
+
+  // In server-side contexts (SSR/SSG), call the backend directly (no CORS issue)
+  if (typeof window === "undefined") {
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://ramanayam.onrender.com/api/v1";
+    const directUrl = `${API_BASE}/${path}${queryString ? `?${queryString}` : ""}`;
+    const res = await fetch(directUrl, { cache: "no-store" });
+    return res.json();
+  }
+
+  // In browser, route through the Next.js API proxy to bypass CORS
+  const res = await fetch(proxyUrl);
+  if (!res.ok) throw new Error(`Proxy returned ${res.status}`);
+  return res.json();
+};
+
 export interface FetchProductsResponse {
   products: Product[];
   pagination: {
@@ -150,38 +181,56 @@ export const ProductService = {
     return localCategories.find((c) => c.slug === slug);
   },
 
-  // API Category Fetch
+  // API Category Fetch (uses server-side proxy to bypass CORS)
   fetchCategoriesFromApi: async (): Promise<Category[]> => {
+    const mapCategories = (apiCategories: any[]): Category[] =>
+      apiCategories.map((c: any) => ({
+        id: c.id,
+        slug: c.slug,
+        name: c.name,
+        nameHi: c.nameHi || c.name,
+        nameSanskrit: c.nameSanskrit || c.name,
+        description: c.description || "",
+        image: c.image || "/images/categories/placeholder.jpg",
+        productCount: c._count?.products ?? c.productCount ?? 0,
+        childCount: c._count?.children ?? 0,
+        parentId: c.parentId || c.parent?.id || null,
+        parentName: c.parent?.name || null,
+        isActive: c.isActive ?? true,
+        status: c.isActive === false ? "HIDDEN" : "ACTIVE",
+        createdAt: c.createdAt || new Date().toISOString(),
+        updatedAt: c.updatedAt || new Date().toISOString(),
+      }));
+
     try {
-      const res = await axiosClient.get("/categories", { params: { limit: 100 } });
+      // Try server-side proxy first (bypasses CORS)
+      const payload = await proxyGet("categories", { limit: 100 });
       const apiCategories =
-        res.data?.data?.data ||
-        res.data?.data?.items ||
-        res.data?.data?.categories ||
-        res.data?.categories ||
-        (Array.isArray(res.data?.data) ? res.data.data : []);
-      if (Array.isArray(apiCategories)) {
-        return apiCategories.map((c: any) => ({
-          id: c.id,
-          slug: c.slug,
-          name: c.name,
-          nameHi: c.nameHi || c.name,
-          nameSanskrit: c.nameSanskrit || c.name,
-          description: c.description || "",
-          image: c.image || "/images/categories/placeholder.jpg",
-          productCount: c._count?.products ?? c.productCount ?? 0,
-          childCount: c._count?.children ?? 0,
-          parentId: c.parentId || c.parent?.id || null,
-          parentName: c.parent?.name || null,
-          isActive: c.isActive ?? true,
-          status: c.isActive === false ? "HIDDEN" : "ACTIVE",
-          createdAt: c.createdAt || new Date().toISOString(),
-          updatedAt: c.updatedAt || new Date().toISOString(),
-        }));
+        payload.data?.data ||
+        payload.data?.items ||
+        payload.data?.categories ||
+        payload.categories ||
+        (Array.isArray(payload.data) ? payload.data : []);
+      if (Array.isArray(apiCategories) && apiCategories.length > 0) {
+        return mapCategories(apiCategories);
       }
       return localCategories;
-    } catch (err) {
-      console.warn("Failed to fetch categories from API:", err);
+    } catch {
+      // Fallback to direct axiosClient
+      try {
+        const res = await axiosClient.get("/categories", { params: { limit: 100 } });
+        const apiCategories =
+          res.data?.data?.data ||
+          res.data?.data?.items ||
+          res.data?.data?.categories ||
+          res.data?.categories ||
+          (Array.isArray(res.data?.data) ? res.data.data : []);
+        if (Array.isArray(apiCategories) && apiCategories.length > 0) {
+          return mapCategories(apiCategories);
+        }
+      } catch (err) {
+        console.warn("Failed to fetch categories from API:", err);
+      }
       return localCategories;
     }
   },
@@ -286,50 +335,96 @@ export const ProductService = {
       }
     }
 
-    const res = await axiosClient.get("/products", { params: queryParams });
-    const payload = res.data;
+    // Use server-side proxy for public product listing (bypasses CORS)
+    try {
+      const payload = await proxyGet("products", queryParams);
 
-    const rawList =
-      (Array.isArray(payload.data?.data) ? payload.data.data : null) ||
-      payload.data?.products ||
-      payload.products ||
-      (Array.isArray(payload.data) ? payload.data : []);
-    const total =
-      payload.data?.meta?.total ??
-      payload.data?.total ??
-      payload.pagination?.total ??
-      rawList.length;
-    const page =
-      payload.data?.meta?.page ??
-      payload.data?.page ??
-      payload.pagination?.page ??
-      Number(params?.page || 1);
-    const limit =
-      payload.data?.meta?.limit ??
-      payload.data?.limit ??
-      payload.pagination?.limit ??
-      Number(params?.limit || 10);
-    const totalPages =
-      payload.data?.meta?.totalPages ?? (Math.ceil(total / limit) || 1);
+      const rawList =
+        (Array.isArray(payload.data?.data) ? payload.data.data : null) ||
+        payload.data?.products ||
+        payload.products ||
+        (Array.isArray(payload.data) ? payload.data : []);
+      const total =
+        payload.data?.meta?.total ??
+        payload.data?.total ??
+        payload.pagination?.total ??
+        rawList.length;
+      const page =
+        payload.data?.meta?.page ??
+        payload.data?.page ??
+        payload.pagination?.page ??
+        Number(params?.page || 1);
+      const limit =
+        payload.data?.meta?.limit ??
+        payload.data?.limit ??
+        payload.pagination?.limit ??
+        Number(params?.limit || 10);
+      const totalPages =
+        payload.data?.meta?.totalPages ?? (Math.ceil(total / limit) || 1);
 
-    return {
-      products: rawList.map(mapBackendProductToFrontend),
-      pagination: { total, page, limit, totalPages },
-    };
+      return {
+        products: rawList.map(mapBackendProductToFrontend),
+        pagination: { total, page, limit, totalPages },
+      };
+    } catch {
+      // Fallback to direct axiosClient if proxy is unavailable
+      const res = await axiosClient.get("/products", { params: queryParams });
+      const payload = res.data;
+
+      const rawList =
+        (Array.isArray(payload.data?.data) ? payload.data.data : null) ||
+        payload.data?.products ||
+        payload.products ||
+        (Array.isArray(payload.data) ? payload.data : []);
+      const total =
+        payload.data?.meta?.total ??
+        payload.data?.total ??
+        payload.pagination?.total ??
+        rawList.length;
+      const page =
+        payload.data?.meta?.page ??
+        payload.data?.page ??
+        payload.pagination?.page ??
+        Number(params?.page || 1);
+      const limit =
+        payload.data?.meta?.limit ??
+        payload.data?.limit ??
+        payload.pagination?.limit ??
+        Number(params?.limit || 10);
+      const totalPages =
+        payload.data?.meta?.totalPages ?? (Math.ceil(total / limit) || 1);
+
+      return {
+        products: rawList.map(mapBackendProductToFrontend),
+        pagination: { total, page, limit, totalPages },
+      };
+    }
   },
 
   // GET Product Details by ID
   fetchProductByIdFromApi: async (id: string): Promise<Product> => {
-    const res = await axiosClient.get(`/products/id/${id}`);
-    const raw = res.data?.data?.product || res.data?.product || res.data?.data || res.data;
-    return mapBackendProductToFrontend(raw);
+    try {
+      const payload = await proxyGet(`products/id/${id}`);
+      const raw = payload.data?.product || payload.product || payload.data || payload;
+      return mapBackendProductToFrontend(raw);
+    } catch {
+      const res = await axiosClient.get(`/products/id/${id}`);
+      const raw = res.data?.data?.product || res.data?.product || res.data?.data || res.data;
+      return mapBackendProductToFrontend(raw);
+    }
   },
 
   // GET Product Details by Slug
   fetchProductBySlugFromApi: async (slug: string): Promise<Product> => {
-    const res = await axiosClient.get(`/products/slug/${slug}`);
-    const raw = res.data?.data?.product || res.data?.product || res.data?.data || res.data;
-    return mapBackendProductToFrontend(raw);
+    try {
+      const payload = await proxyGet(`products/slug/${slug}`);
+      const raw = payload.data?.product || payload.product || payload.data || payload;
+      return mapBackendProductToFrontend(raw);
+    } catch {
+      const res = await axiosClient.get(`/products/slug/${slug}`);
+      const raw = res.data?.data?.product || res.data?.product || res.data?.data || res.data;
+      return mapBackendProductToFrontend(raw);
+    }
   },
 
   // POST Product (Create)
