@@ -63,11 +63,11 @@ const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:3000")
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow server-to-server requests (no origin) only in non-production
-      if (!origin && process.env.NODE_ENV !== "production") {
+      // Allow requests with no origin (like mobile apps, curl, server-to-server, or health checks)
+      if (!origin) {
         return callback(null, true);
       }
-      if (origin && allowedOrigins.includes(origin)) {
+      if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
       callback(new Error(`CORS: Origin '${origin}' is not allowed`));
