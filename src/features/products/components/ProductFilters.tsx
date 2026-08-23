@@ -15,16 +15,22 @@ interface ProductFiltersProps {
 }
 
 const CATEGORY_ALIASES: Record<string, string[]> = {
-  "idols-murtis": ["idols-murtis", "murti", "idols-shrines", "mandir"],
+  "idols-murtis": ["idols-murtis", "murti", "idols-shrines", "mandir", "yantra"],
   "murti": ["murti", "idols-murtis", "idols-shrines", "mandir"],
-  "puja-brassware": ["puja-brassware", "brass-copper-items", "pooja-thali-accessories"],
-  "brass-copper-items": ["brass-copper-items", "puja-brassware", "pooja-thali-accessories"],
+  "mandir": ["mandir", "idols-murtis", "murti"],
+  "puja-brassware": ["puja-brassware", "brass-copper-items", "pooja-thali-accessories", "shankh-bells"],
+  "brass-copper-items": ["brass-copper-items", "puja-brassware", "pooja-thali-accessories", "shankh-bells"],
+  "pooja-thali-accessories": ["pooja-thali-accessories", "puja-brassware", "brass-copper-items"],
   "incense-fragrances": ["incense-fragrances", "home-fragrance"],
   "home-fragrance": ["home-fragrance", "incense-fragrances"],
-  "samagri-kits": ["samagri-kits", "pooja-samagri", "pooja-kits"],
+  "samagri-kits": ["samagri-kits", "pooja-samagri", "pooja-kits", "festival-special", "bhog-prasad", "books-scriptures"],
   "pooja-samagri": ["pooja-samagri", "samagri-kits", "pooja-kits"],
-  "temple-decor": ["temple-decor", "temple-decoration"],
+  "pooja-kits": ["pooja-kits", "samagri-kits", "pooja-samagri"],
+  "temple-decor": ["temple-decor", "temple-decoration", "gift-items", "spiritual-accessories"],
   "temple-decoration": ["temple-decoration", "temple-decor"],
+  "spiritual-wear": ["spiritual-wear", "clothing-religious-wear", "bhagwan-vastra", "mukut-shringar", "rudraksha-collection", "mala"],
+  "clothing-religious-wear": ["clothing-religious-wear", "bhagwan-vastra", "mukut-shringar"],
+  "rudraksha-collection": ["rudraksha-collection", "mala"],
 };
 
 function isCategoryActive(catSlug: string, catId?: string, filterCategories: string[] = []): boolean {
@@ -181,8 +187,8 @@ export function ProductFilters({
         <input
           type="range"
           min={0}
-          max={15000}
-          step={100}
+          max={50000}
+          step={500}
           aria-label="Maximum price filter"
           value={filters.maxPrice}
           onChange={(e) => setMaxPrice(+e.target.value)}

@@ -14,16 +14,22 @@ export interface FilterState {
 }
 
 const CATEGORY_ALIASES: Record<string, string[]> = {
-  "idols-murtis": ["idols-murtis", "murti", "idols-shrines", "mandir"],
+  "idols-murtis": ["idols-murtis", "murti", "idols-shrines", "mandir", "yantra"],
   "murti": ["murti", "idols-murtis", "idols-shrines", "mandir"],
-  "puja-brassware": ["puja-brassware", "brass-copper-items", "pooja-thali-accessories"],
-  "brass-copper-items": ["brass-copper-items", "puja-brassware", "pooja-thali-accessories"],
+  "mandir": ["mandir", "idols-murtis", "murti"],
+  "puja-brassware": ["puja-brassware", "brass-copper-items", "pooja-thali-accessories", "shankh-bells"],
+  "brass-copper-items": ["brass-copper-items", "puja-brassware", "pooja-thali-accessories", "shankh-bells"],
+  "pooja-thali-accessories": ["pooja-thali-accessories", "puja-brassware", "brass-copper-items"],
   "incense-fragrances": ["incense-fragrances", "home-fragrance"],
   "home-fragrance": ["home-fragrance", "incense-fragrances"],
-  "samagri-kits": ["samagri-kits", "pooja-samagri", "pooja-kits"],
+  "samagri-kits": ["samagri-kits", "pooja-samagri", "pooja-kits", "festival-special", "bhog-prasad", "books-scriptures"],
   "pooja-samagri": ["pooja-samagri", "samagri-kits", "pooja-kits"],
-  "temple-decor": ["temple-decor", "temple-decoration"],
+  "pooja-kits": ["pooja-kits", "samagri-kits", "pooja-samagri"],
+  "temple-decor": ["temple-decor", "temple-decoration", "gift-items", "spiritual-accessories"],
   "temple-decoration": ["temple-decoration", "temple-decor"],
+  "spiritual-wear": ["spiritual-wear", "clothing-religious-wear", "bhagwan-vastra", "mukut-shringar", "rudraksha-collection", "mala"],
+  "clothing-religious-wear": ["clothing-religious-wear", "bhagwan-vastra", "mukut-shringar"],
+  "rudraksha-collection": ["rudraksha-collection", "mala"],
 };
 
 export function useProducts() {
@@ -64,18 +70,23 @@ export function useProducts() {
 
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
-    maxPrice: 15000,
+    maxPrice: 50000,
     minRating: 0,
     inStockOnly: false,
   });
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Sync category & search params from URL
+  // Sync category & search params from URL (supports comma-separated categories)
   useEffect(() => {
     setFilters((prev) => ({
       ...prev,
-      categories: categoryParam ? [categoryParam] : [],
+      categories: categoryParam
+        ? categoryParam
+            .split(",")
+            .map((c) => c.trim().toLowerCase())
+            .filter(Boolean)
+        : [],
     }));
     if (searchParam) {
       setSearchQuery(searchParam);
@@ -86,7 +97,7 @@ export function useProducts() {
   const [showFilters, setShowFilters] = useState(false);
 
   const clearAll = () => {
-    setFilters({ categories: [], maxPrice: 15000, minRating: 0, inStockOnly: false });
+    setFilters({ categories: [], maxPrice: 50000, minRating: 0, inStockOnly: false });
     setSearchQuery("");
   };
 
@@ -181,6 +192,12 @@ export function useProducts() {
       const cat = categoriesList.find((c) => c.slug === selectedSlug || c.id === selectedSlug);
       if (cat) return cat.name;
       return selectedSlug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+    }
+    if (filters.categories.length > 1) {
+      const firstSlug = filters.categories[0];
+      const firstCat = categoriesList.find((c) => c.slug === firstSlug || c.id === firstSlug);
+      const firstName = firstCat?.name || firstSlug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+      return `${firstName} + ${filters.categories.length - 1} more`;
     }
     return null;
   }, [filters.categories, categoriesList]);
