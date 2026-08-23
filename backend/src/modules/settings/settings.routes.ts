@@ -14,12 +14,13 @@ const repository = new SettingsRepository(prisma);
 const service = new SettingsService(repository);
 const controller = new SettingsController(service);
 
-// Public route to fetch general store settings (currency, public contact)
+// Protected Admin Routes to manage system settings
+router.use(authenticate);
+router.use(authorize([UserRole.ADMIN]));
+
 router.get("/", controller.getAll);
 router.get("/:key", controller.getByKey);
-
-// Protected Admin Routes to modify system settings
-router.patch("/", authenticate, authorize([UserRole.ADMIN]), validateRequest(updateSettingSchema), controller.update);
-router.patch("/bulk", authenticate, authorize([UserRole.ADMIN]), validateRequest(bulkUpdateSettingsSchema), controller.bulkUpdate);
+router.patch("/", validateRequest(updateSettingSchema), controller.update);
+router.patch("/bulk", validateRequest(bulkUpdateSettingsSchema), controller.bulkUpdate);
 
 export default router;

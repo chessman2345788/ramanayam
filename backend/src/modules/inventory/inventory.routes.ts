@@ -22,6 +22,12 @@ const service = new InventoryService(repository);
 const controller = new InventoryController(service);
 
 // ======================================================
+// RBAC: All inventory routes require ADMIN or VENDOR role
+// ======================================================
+router.use(authenticate);
+router.use(authorize(["ADMIN", "VENDOR"]));
+
+// ======================================================
 // READ ENDPOINTS (Static routes first to prevent collision)
 // ======================================================
 

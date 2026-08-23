@@ -2,18 +2,37 @@ import { Request, Response } from "express";
 import { ProductService, UserContext } from "./product.service";
 import { sendSuccess } from "../../components/response";
 import { ProductFilters } from "./product.repository";
+import { verifyToken } from "../../components/auth";
 
 export class ProductController {
   constructor(private service: ProductService) {}
 
   private getUserContext(req: Request): UserContext | undefined {
     const user = (req as any).user;
-    if (!user) return undefined;
-    return {
-      id: user.id,
-      role: user.role,
-      vendorId: user.vendorId,
-    };
+    if (user) {
+      return {
+        id: user.id,
+        role: user.role,
+        vendorId: user.vendorId,
+      };
+    }
+
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      try {
+        const token = authHeader.split(" ")[1];
+        const decoded = verifyToken(token);
+        return {
+          id: decoded.id,
+          role: decoded.role,
+          vendorId: (decoded as any).vendorId,
+        };
+      } catch {
+        return undefined;
+      }
+    }
+
+    return undefined;
   }
 
   // ==========================================
@@ -51,6 +70,7 @@ export class ProductController {
   };
 
   listProducts = async (req: Request, res: Response): Promise<void> => {
+    const user = this.getUserContext(req);
     const page = parseInt(req.query.page as string, 10) || 1;
     const limit = parseInt(req.query.limit as string, 10) || 10;
     const sort = (req.query.sort as string) || "newest";
@@ -67,49 +87,54 @@ export class ProductController {
       search: (req.query.search as string) || (req.query.q as string),
     };
 
-    const result = await this.service.listProducts(filters, sort, page, limit);
+    const result = await this.service.listProducts(filters, sort, page, limit, user);
     sendSuccess(res, "Products fetched successfully", result);
   };
 
   searchProducts = async (req: Request, res: Response): Promise<void> => {
+    const user = this.getUserContext(req);
     const query = (req.query.q as string) || (req.query.search as string) || "";
     const page = parseInt(req.query.page as string, 10) || 1;
     const limit = parseInt(req.query.limit as string, 10) || 10;
 
-    const result = await this.service.searchProducts(query, page, limit);
+    const result = await this.service.searchProducts(query, page, limit, user);
     sendSuccess(res, "Search results fetched successfully", result);
   };
 
   featuredProducts = async (req: Request, res: Response): Promise<void> => {
+    const user = this.getUserContext(req);
     const page = parseInt(req.query.page as string, 10) || 1;
     const limit = parseInt(req.query.limit as string, 10) || 10;
 
-    const result = await this.service.getFeaturedProducts(page, limit);
+    const result = await this.service.getFeaturedProducts(page, limit, user);
     sendSuccess(res, "Featured products fetched successfully", result);
   };
 
   bestSellers = async (req: Request, res: Response): Promise<void> => {
+    const user = this.getUserContext(req);
     const page = parseInt(req.query.page as string, 10) || 1;
     const limit = parseInt(req.query.limit as string, 10) || 10;
 
-    const result = await this.service.getBestSellers(page, limit);
+    const result = await this.service.getBestSellers(page, limit, user);
     sendSuccess(res, "Best sellers fetched successfully", result);
   };
 
   newArrivals = async (req: Request, res: Response): Promise<void> => {
+    const user = this.getUserContext(req);
     const page = parseInt(req.query.page as string, 10) || 1;
     const limit = parseInt(req.query.limit as string, 10) || 10;
 
-    const result = await this.service.getNewArrivals(page, limit);
+    const result = await this.service.getNewArrivals(page, limit, user);
     sendSuccess(res, "New arrivals fetched successfully", result);
   };
 
   getCategoryProducts = async (req: Request, res: Response): Promise<void> => {
+    const user = this.getUserContext(req);
     const { categoryId } = req.params;
     const page = parseInt(req.query.page as string, 10) || 1;
     const limit = parseInt(req.query.limit as string, 10) || 10;
 
-    const result = await this.service.getCategoryProducts(categoryId, page, limit);
+    const result = await this.service.getCategoryProducts(categoryId, page, limit, user);
     sendSuccess(res, "Category products fetched successfully", result);
   };
 

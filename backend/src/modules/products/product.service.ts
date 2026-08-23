@@ -134,37 +134,44 @@ export class ProductService {
     sort = "newest",
     page = 1,
     limit = 10,
+    user?: UserContext,
   ): Promise<PaginationResult<Product>> {
     const validLimit = Math.min(Math.max(limit, 1), 2000);
     const validPage = Math.max(page, 1);
     const skip = (validPage - 1) * validLimit;
 
+    // Strict Public Isolation: Only ADMINs can query non-ACTIVE products (such as DRAFT or ALL)
+    if (!user || user.role !== "ADMIN") {
+      filters.status = ProductStatus.ACTIVE;
+    }
+
     const { data, total } = await this.repository.findProducts(filters, sort, skip, validLimit);
     return formatPaginationResult(data, total, validPage, validLimit);
   }
 
-  async getFeaturedProducts(page = 1, limit = 10): Promise<PaginationResult<Product>> {
-    return this.listProducts({ featured: true }, "newest", page, limit);
+  async getFeaturedProducts(page = 1, limit = 10, user?: UserContext): Promise<PaginationResult<Product>> {
+    return this.listProducts({ featured: true }, "newest", page, limit, user);
   }
 
-  async getBestSellers(page = 1, limit = 10): Promise<PaginationResult<Product>> {
-    return this.listProducts({}, "popularity", page, limit);
+  async getBestSellers(page = 1, limit = 10, user?: UserContext): Promise<PaginationResult<Product>> {
+    return this.listProducts({}, "popularity", page, limit, user);
   }
 
-  async getNewArrivals(page = 1, limit = 10): Promise<PaginationResult<Product>> {
-    return this.listProducts({}, "newest", page, limit);
+  async getNewArrivals(page = 1, limit = 10, user?: UserContext): Promise<PaginationResult<Product>> {
+    return this.listProducts({}, "newest", page, limit, user);
   }
 
   async getCategoryProducts(
     categoryId: string,
     page = 1,
     limit = 10,
+    user?: UserContext,
   ): Promise<PaginationResult<Product>> {
-    return this.listProducts({ categoryId }, "newest", page, limit);
+    return this.listProducts({ categoryId }, "newest", page, limit, user);
   }
 
-  async searchProducts(query: string, page = 1, limit = 10): Promise<PaginationResult<Product>> {
-    return this.listProducts({ search: query }, "newest", page, limit);
+  async searchProducts(query: string, page = 1, limit = 10, user?: UserContext): Promise<PaginationResult<Product>> {
+    return this.listProducts({ search: query }, "newest", page, limit, user);
   }
 
   // ==========================================

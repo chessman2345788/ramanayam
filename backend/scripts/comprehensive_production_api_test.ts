@@ -164,8 +164,8 @@ async function runApiVerification() {
     };
     console.log(`  ${activeDetailPass ? '✅' : '❌'} Detail '${sampleActive?.name}' → Slug: ${slugRes.status}, ID: ${idRes.status}`);
 
-    // 7. CRITICAL TEST: DRAFT Product Protection
-    console.log('\n--- 7. CRITICAL TEST: DRAFT Product Inaccessibility for Public Storefront ---');
+    // 7. CRITICAL TEST: DRAFT Product Protection & Query Param Bypass Prevention
+    console.log('\n--- 7. CRITICAL TEST: DRAFT Product Inaccessibility & Query Param Security ---');
     const sampleDraft = await prisma.product.findFirst({
       where: { status: 'DRAFT' },
       select: { id: true, slug: true, name: true },
@@ -174,39 +174,53 @@ async function runApiVerification() {
     const draftSlugRes = await request(`/api/v1/products/slug/${sampleDraft?.slug}`);
     const draftIdRes = await request(`/api/v1/products/id/${sampleDraft?.id}`);
     const draftStatusRes = await request(`/api/v1/products?status=DRAFT`);
+    const statusAllRes = await request(`/api/v1/products?status=ALL&limit=1000`);
     const draftSearchRes = await request(`/api/v1/products/search?q=${encodeURIComponent(sampleDraft?.name || '')}`);
 
     const { items: draftSearchItems } = extractItemsAndTotal(draftSearchRes.body);
     const draftSearchLeaked = draftSearchItems.some((p: any) => p.id === sampleDraft?.id);
-    const { total: draftStatusTotal } = extractItemsAndTotal(draftStatusRes.body);
+    const { items: draftStatusItems, total: draftStatusTotal } = extractItemsAndTotal(draftStatusRes.body);
+    const { items: statusAllItems, total: statusAllTotal } = extractItemsAndTotal(statusAllRes.body);
 
     const draftSlugBlocked = draftSlugRes.status === 404;
     const draftIdBlocked = draftIdRes.status === 404;
     const draftSearchBlocked = !draftSearchLeaked;
+    const statusAllBlocked = statusAllTotal === 199 && statusAllItems.every((p: any) => p.status === 'ACTIVE');
+    const draftStatusBlocked = draftStatusItems.every((p: any) => p.status === 'ACTIVE');
 
-    const draftProtectionPass = draftSlugBlocked && draftIdBlocked && draftSearchBlocked;
+    const draftProtectionPass = draftSlugBlocked && draftIdBlocked && draftSearchBlocked && statusAllBlocked && draftStatusBlocked;
     testResults['DRAFT Protection (Zero Leakage)'] = {
       pass: draftProtectionPass,
-      details: `Slug Blocked (404): ${draftSlugBlocked}, ID Blocked (404): ${draftIdBlocked}, Search Blocked: ${draftSearchBlocked}`,
+      details: `Slug Blocked (404): ${draftSlugBlocked}, ID Blocked (404): ${draftIdBlocked}, Search Blocked: ${draftSearchBlocked}, status=ALL Sanitized: ${statusAllBlocked}`,
     };
-    console.log(`  ${draftSlugBlocked ? '✅' : '❌'} DRAFT Slug Lookup (${sampleDraft?.slug}) → Status: ${draftSlugRes.status} (Expected: 404)`);
-    console.log(`  ${draftIdBlocked ? '✅' : '❌'} DRAFT ID Lookup (${sampleDraft?.id}) → Status: ${draftIdRes.status} (Expected: 404)`);
-    console.log(`  ${draftSearchBlocked ? '✅' : '❌'} DRAFT Product Search Query → Leaked: ${draftSearchLeaked} (Expected: false)`);
+    console.log(`  ${draftSlugBlocked ? '✅' : '❌'} Anonymous DRAFT Slug Lookup (${sampleDraft?.slug}) → Status: ${draftSlugRes.status} (Expected: 404)`);
+    console.log(`  ${draftIdBlocked ? '✅' : '❌'} Anonymous DRAFT ID Lookup (${sampleDraft?.id}) → Status: ${draftIdRes.status} (Expected: 404)`);
+    console.log(`  ${draftSearchBlocked ? '✅' : '❌'} Anonymous DRAFT Search Query → Leaked: ${draftSearchLeaked} (Expected: false)`);
+    console.log(`  ${statusAllBlocked ? '✅' : '❌'} Anonymous GET ?status=ALL → Total: ${statusAllTotal} (Expected: 199 ACTIVE only)`);
     console.log(`  ${draftProtectionPass ? '✅' : '❌'} DRAFT Leakage Verdict: 0 DRAFT products accessible to public`);
 
-    // 8. Public Inventory Read
-    console.log('\n--- 8. Testing Public Inventory Endpoint ---');
-    const invRes = await request('/api/v1/inventory?limit=5');
-    const { items: invItems, total: invTotal } = extractItemsAndTotal(invRes.body);
-    const invPass = invRes.status === 200 && invTotal === 1064;
-    testResults['Inventory Read'] = {
-      pass: invPass,
-      details: `Status: ${invRes.status}, Total inventory records: ${invTotal} (Expected: 1064)`,
+    // 8. Anonymous Inventory Protection
+    console.log('\n--- 8. Testing Anonymous Access to Inventory ---');
+    const anonInvRes = await request('/api/v1/inventory?limit=5');
+    const anonInvPass = anonInvRes.status === 401;
+    testResults['Anonymous Inventory Protection'] = {
+      pass: anonInvPass,
+      details: `Status: ${anonInvRes.status} (Expected: 401 Unauthorized)`,
     };
-    console.log(`  ${invPass ? '✅' : '❌'} GET /api/v1/inventory → Status: ${invRes.status}, Total: ${invTotal} (Expected: 1064)`);
+    console.log(`  ${anonInvPass ? '✅' : '❌'} Anonymous GET /api/v1/inventory → Status: ${anonInvRes.status} (Expected: 401)`);
 
-    // 9. Admin Authentication & RBAC
-    console.log('\n--- 9. Admin Authentication & Token Generation ---');
+    // 9. Anonymous Settings Protection
+    console.log('\n--- 9. Testing Anonymous Access to Settings ---');
+    const anonSetRes = await request('/api/v1/settings');
+    const anonSetPass = anonSetRes.status === 401;
+    testResults['Anonymous Settings Protection'] = {
+      pass: anonSetPass,
+      details: `Status: ${anonSetRes.status} (Expected: 401 Unauthorized)`,
+    };
+    console.log(`  ${anonSetPass ? '✅' : '❌'} Anonymous GET /api/v1/settings → Status: ${anonSetRes.status} (Expected: 401)`);
+
+    // 10. Admin Authentication & Token Generation
+    console.log('\n--- 10. Admin Authentication & Token Generation ---');
     const adminUser = await prisma.user.findFirst({
       where: { role: 'ADMIN' },
       select: { id: true, email: true, role: true },
@@ -220,45 +234,56 @@ async function runApiVerification() {
     const adminHeaders = { Authorization: `Bearer ${adminToken}` };
     console.log(`  ✅ Generated Admin JWT for: ${adminUser.email} (Role: ${adminUser.role})`);
 
-    // 10. Admin Dashboard & Stats
-    console.log('\n--- 10. Testing Admin Dashboard & Stats ---');
+    // 11. Testing Admin Dashboard & Stats
+    console.log('\n--- 11. Testing Admin Dashboard & Stats ---');
     const dashRes = await request('/api/v1/admin/dashboard', { headers: adminHeaders });
-    const statsRes = await request('/api/v1/admin/stats', { headers: adminHeaders });
-    const dashData = dashRes.body?.data || {};
-    const statsData = statsRes.body?.data || {};
-
-    const dashTotalProducts = dashData.totalProducts || statsData.totalProducts || 1064;
-    const dashTotalOrders = dashData.totalOrders || statsData.totalOrders || 0;
-    const dashTotalRevenue = dashData.totalRevenue || statsData.totalRevenue || 0;
-
-    const dashPass = dashRes.status === 200 && dashTotalOrders === 0 && dashTotalRevenue === 0;
+    const dashPass = dashRes.status === 200;
+    const stats = dashRes.body?.data || {};
     testResults['Admin Dashboard & Revenue'] = {
-      pass: dashPass,
-      details: `Dashboard Status: ${dashRes.status}, Revenue: ₹${dashTotalRevenue} (Expected: ₹0), Orders: ${dashTotalOrders}`,
+      pass: dashPass && stats.totalOrders === 0 && stats.totalRevenue === 0,
+      details: `Dashboard Status: ${dashRes.status}, Revenue: ₹${stats.totalRevenue || 0} (Expected: ₹0), Orders: ${stats.totalOrders || 0}`,
     };
-    console.log(`  ${dashRes.status === 200 ? '✅' : '❌'} GET /api/v1/admin/dashboard → Status: ${dashRes.status}`);
-    console.log(`  ${dashTotalOrders === 0 ? '✅' : '❌'} Total Orders: ${dashTotalOrders} (Expected: 0)`);
-    console.log(`  ${dashTotalRevenue === 0 ? '✅' : '❌'} Total Revenue: ₹${dashTotalRevenue} (Expected: ₹0)`);
+    console.log(`  ${dashPass ? '✅' : '❌'} GET /api/v1/admin/dashboard → Status: ${dashRes.status}`);
+    console.log(`  ${stats.totalOrders === 0 ? '✅' : '❌'} Total Orders: ${stats.totalOrders || 0} (Expected: 0)`);
+    console.log(`  ${stats.totalRevenue === 0 ? '✅' : '❌'} Total Revenue: ₹${stats.totalRevenue || 0} (Expected: ₹0)`);
 
-    // 11. Admin Products Listing (All 1,064 + DRAFT 865)
-    console.log('\n--- 11. Testing Admin Products ---');
-    const adminProdRes = await request('/api/v1/admin/products?limit=2000', { headers: adminHeaders });
-    const adminDraftRes = await request('/api/v1/admin/products?status=DRAFT&limit=2000', { headers: adminHeaders });
-    const adminActiveRes = await request('/api/v1/admin/products?status=ACTIVE&limit=2000', { headers: adminHeaders });
-
-    const adminTotalProducts = adminProdRes.body?.data?.total || adminProdRes.body?.total || 0;
-    const adminTotalDraft = adminDraftRes.body?.data?.total || adminDraftRes.body?.total || 0;
-    const adminTotalActive = adminActiveRes.body?.data?.total || adminActiveRes.body?.total || 0;
-
-    const adminProdPass = adminProdRes.status === 200 && adminTotalProducts === 1064 && adminTotalDraft === 865 && adminTotalActive === 199;
+    // 12. Testing Admin Products (Authenticated Full Catalog)
+    console.log('\n--- 12. Testing Admin Products (Authenticated Full Catalog) ---');
+    const adminProdRes = await request('/api/v1/products?status=ALL&limit=2000', { headers: adminHeaders });
+    const { items: adminProducts, total: adminTotal } = extractItemsAndTotal(adminProdRes.body);
+    const adminActiveCount = adminProducts.filter((p: any) => p.status === 'ACTIVE').length;
+    const adminDraftCount = adminProducts.filter((p: any) => p.status === 'DRAFT').length;
+    const adminProdPass = adminProdRes.status === 200 && adminTotal === 1064 && adminActiveCount === 199 && adminDraftCount === 865;
     testResults['Admin Products (1,064 Total, 865 DRAFT)'] = {
       pass: adminProdPass,
-      details: `Total: ${adminTotalProducts} (1064), DRAFT: ${adminTotalDraft} (865), ACTIVE: ${adminTotalActive} (199)`,
+      details: `Total: ${adminTotal} (1064), DRAFT: ${adminDraftCount} (865), ACTIVE: ${adminActiveCount} (199)`,
     };
-    console.log(`  ${adminProdPass ? '✅' : '❌'} Admin Products → Total: ${adminTotalProducts} (Expected: 1064) | DRAFT: ${adminTotalDraft} (865) | ACTIVE: ${adminTotalActive} (199)`);
+    console.log(`  ${adminProdPass ? '✅' : '❌'} Admin Products → Total: ${adminTotal} (Expected: 1064) | DRAFT: ${adminDraftCount} (865) | ACTIVE: ${adminActiveCount} (199)`);
 
-    // 12. Admin Users / Customers
-    console.log('\n--- 12. Testing Admin Users / Customers ---');
+    // 13. Testing Admin Inventory
+    console.log('\n--- 13. Testing Admin Inventory Access ---');
+    const adminInvRes = await request('/api/v1/inventory?limit=100', { headers: adminHeaders });
+    const { items: adminInvItems, total: adminInvTotal } = extractItemsAndTotal(adminInvRes.body);
+    const adminInvPass = adminInvRes.status === 200 && adminInvTotal === 1064;
+    testResults['Admin Inventory Access'] = {
+      pass: adminInvPass,
+      details: `Status: ${adminInvRes.status}, Total records: ${adminInvTotal} (Expected: 1064)`,
+    };
+    console.log(`  ${adminInvPass ? '✅' : '❌'} Admin GET /api/v1/inventory → Status: ${adminInvRes.status}, Total: ${adminInvTotal} (Expected: 1064)`);
+
+    // 14. Testing Admin Settings
+    console.log('\n--- 14. Testing Admin Settings Access ---');
+    const adminSetRes = await request('/api/v1/settings', { headers: adminHeaders });
+    const { items: adminSettings, total: adminSetTotal } = extractItemsAndTotal(adminSetRes.body);
+    const adminSetPass = adminSetRes.status === 200 && adminSettings.length === 5;
+    testResults['Admin Settings Access'] = {
+      pass: adminSetPass,
+      details: `Status: ${adminSetRes.status}, Settings Count: ${adminSettings.length} (Expected: 5)`,
+    };
+    console.log(`  ${adminSetPass ? '✅' : '❌'} Admin GET /api/v1/settings → Status: ${adminSetRes.status}, Count: ${adminSettings.length} (Expected: 5)`);
+
+    // 15. Admin Users / Customers
+    console.log('\n--- 15. Testing Admin Users / Customers ---');
     const usersRes = await request('/api/v1/admin/users', { headers: adminHeaders });
     const usersCount = usersRes.body?.data?.total || usersRes.body?.data?.users?.length || 0;
     const usersPass = usersRes.status === 200 && usersCount === 3;
@@ -268,8 +293,8 @@ async function runApiVerification() {
     };
     console.log(`  ${usersPass ? '✅' : '❌'} GET /api/v1/admin/users → Count: ${usersCount} (Expected: 3)`);
 
-    // 13. Admin Reviews
-    console.log('\n--- 13. Testing Admin Reviews ---');
+    // 16. Admin Reviews
+    console.log('\n--- 16. Testing Admin Reviews ---');
     const reviewsRes = await request('/api/v1/admin/reviews', { headers: adminHeaders });
     const reviewsCount = reviewsRes.body?.data?.total || reviewsRes.body?.data?.reviews?.length || 0;
     const reviewsPass = reviewsRes.status === 200 && reviewsCount === 1;
@@ -279,8 +304,8 @@ async function runApiVerification() {
     };
     console.log(`  ${reviewsPass ? '✅' : '❌'} GET /api/v1/admin/reviews → Count: ${reviewsCount} (Expected: 1)`);
 
-    // 14. Admin Coupons
-    console.log('\n--- 14. Testing Admin Coupons ---');
+    // 17. Admin Coupons
+    console.log('\n--- 17. Testing Admin Coupons ---');
     const couponsRes = await request('/api/v1/coupons', { headers: adminHeaders });
     const { items: couponsList, total: couponsTotal } = extractItemsAndTotal(couponsRes.body);
     const couponsPass = couponsRes.status === 200 && (couponsTotal === 3 || couponsList.length === 3);
@@ -289,18 +314,6 @@ async function runApiVerification() {
       details: `Status: ${couponsRes.status}, Total Coupons: ${couponsTotal || couponsList.length} (Expected: 3)`,
     };
     console.log(`  ${couponsPass ? '✅' : '❌'} GET /api/v1/coupons → Count: ${couponsTotal || couponsList.length} (Expected: 3)`);
-
-    // 15. Admin Settings
-    console.log('\n--- 15. Testing Admin Settings ---');
-    const settingsRes = await request('/api/v1/settings');
-    const settings = settingsRes.body?.data?.settings || settingsRes.body?.data || [];
-    const settingsCount = Array.isArray(settings) ? settings.length : Object.keys(settings).length;
-    const settingsPass = settingsRes.status === 200 && settingsCount === 5;
-    testResults['Admin Settings (5 Total)'] = {
-      pass: settingsPass,
-      details: `Status: ${settingsRes.status}, Settings Count: ${settingsCount} (Expected: 5)`,
-    };
-    console.log(`  ${settingsPass ? '✅' : '❌'} GET /api/v1/settings → Count: ${settingsCount} (Expected: 5)`);
 
     // 16. Orders & Payments
     console.log('\n--- 16. Testing Orders & Payments Endpoints ---');
