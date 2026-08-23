@@ -14,7 +14,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
-    "prepare": "cd .. && husky backend/.husky"
+    "prepare": "node -e \"try { if (require('fs').existsSync('../.git')) require('child_process').execSync('cd .. && husky backend/.husky', { stdio: 'inherit' }); } catch (e) {}\""
   },
   "prisma": {
     "seed": "npx ts-node prisma/seed.ts"
