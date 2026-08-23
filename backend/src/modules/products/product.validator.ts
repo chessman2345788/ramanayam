@@ -85,7 +85,7 @@ export const listProductsQuerySchema = z.object({
     categoryId: z.string().optional(),
     vendor: z.string().optional(),
     vendorId: z.string().optional(),
-    status: z.nativeEnum(ProductStatus).optional(),
+    status: z.union([z.nativeEnum(ProductStatus), z.literal("ALL")]).optional(),
     featured: z.enum(["true", "false"]).optional(),
     availability: z.enum(["true", "false"]).optional(),
     minPrice: z.string().optional(),

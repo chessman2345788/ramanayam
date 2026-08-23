@@ -52,7 +52,7 @@ export default function AdminProductsPage() {
       limit: pageSize,
       search: filters.search || undefined,
       category: filters.category || undefined,
-      status: filters.status || undefined,
+      status: filters.status || "ALL",
       featured: filters.featured !== null ? filters.featured : undefined,
       minPrice: filters.minPrice ?? undefined,
       maxPrice: filters.maxPrice ?? undefined,

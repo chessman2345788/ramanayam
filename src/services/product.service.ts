@@ -30,6 +30,9 @@ const mapStatusToFrontend = (backendStatus?: string): ProductStatus => {
 
 const mapStatusToBackend = (frontendStatus?: string): string => {
   switch (frontendStatus) {
+    case "ALL":
+    case "All":
+      return "ALL";
     case "Active":
     case "ACTIVE":
       return "ACTIVE";

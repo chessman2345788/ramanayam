@@ -1,7 +1,7 @@
 import { PrismaClient, Product, ProductVariant, ProductImage, Collection, ProductStatus, Prisma } from "@prisma/client";
 
 export interface ProductFilters {
-  status?: ProductStatus;
+  status?: ProductStatus | "ALL";
   categoryId?: string;
   vendorId?: string;
   featured?: boolean;
@@ -219,10 +219,12 @@ export class ProductRepository {
   ): Promise<{ data: Product[]; total: number }> {
     const where: Prisma.ProductWhereInput = {};
 
-    if (filters.status) {
+    if (filters.status === "ALL") {
+      where.NOT = { status: ProductStatus.ARCHIVED };
+    } else if (filters.status) {
       where.status = filters.status;
     } else {
-      where.NOT = { status: ProductStatus.ARCHIVED };
+      where.status = ProductStatus.ACTIVE;
     }
 
     if (filters.categoryId) where.categoryId = filters.categoryId;

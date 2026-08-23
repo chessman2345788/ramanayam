@@ -36,8 +36,8 @@ export function useProducts() {
   const [categoriesList, setCategoriesList] = useState<Category[]>(ProductService.getCategories());
 
   useEffect(() => {
-    // Fetch complete catalogue from API (up to 1000 limit)
-    ProductService.fetchProductsFromApi({ limit: 1000 })
+    // Fetch active launch catalogue from API (up to 1000 limit)
+    ProductService.fetchProductsFromApi({ limit: 1000, status: "Active" })
       .then((res) => {
         if (res.products && Array.isArray(res.products) && res.products.length > 0) {
           setApiProducts(res.products as unknown as Product[]);

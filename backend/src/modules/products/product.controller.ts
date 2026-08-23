@@ -39,12 +39,14 @@ export class ProductController {
   };
 
   getProductBySlug = async (req: Request, res: Response): Promise<void> => {
-    const product = await this.service.getProductBySlug(req.params.slug);
+    const user = this.getUserContext(req);
+    const product = await this.service.getProductBySlug(req.params.slug, user);
     sendSuccess(res, "Product fetched successfully", { product });
   };
 
   getProductById = async (req: Request, res: Response): Promise<void> => {
-    const product = await this.service.getProductById(req.params.id);
+    const user = this.getUserContext(req);
+    const product = await this.service.getProductById(req.params.id, user);
     sendSuccess(res, "Product fetched successfully", { product });
   };
 

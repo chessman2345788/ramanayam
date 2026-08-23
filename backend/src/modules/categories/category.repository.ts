@@ -10,7 +10,7 @@ export class CategoryRepository {
       include: {
         parent: true,
         children: { orderBy: { name: "asc" } },
-        _count: { select: { products: true } },
+        _count: { select: { products: { where: { status: "ACTIVE" } } } },
       },
     });
   }
@@ -21,7 +21,7 @@ export class CategoryRepository {
       include: {
         parent: true,
         children: { orderBy: { name: "asc" } },
-        _count: { select: { products: true } },
+        _count: { select: { products: { where: { status: "ACTIVE" } } } },
       },
     });
   }
@@ -74,7 +74,7 @@ export class CategoryRepository {
         take: limit,
         include: {
           parent: { select: { id: true, name: true, slug: true } },
-          _count: { select: { products: true, children: true } },
+          _count: { select: { products: { where: { status: "ACTIVE" } }, children: true } },
         },
       }),
       this.prisma.category.count({ where }),
@@ -88,17 +88,17 @@ export class CategoryRepository {
       where: { parentId: null, isActive: true },
       orderBy: { name: "asc" },
       include: {
-        _count: { select: { products: true } },
+        _count: { select: { products: { where: { status: "ACTIVE" } } } },
         children: {
           where: { isActive: true },
           orderBy: { name: "asc" },
           include: {
-            _count: { select: { products: true } },
+            _count: { select: { products: { where: { status: "ACTIVE" } } } },
             children: {
               where: { isActive: true },
               orderBy: { name: "asc" },
               include: {
-                _count: { select: { products: true } },
+                _count: { select: { products: { where: { status: "ACTIVE" } } } },
               },
             },
           },

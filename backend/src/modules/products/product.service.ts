@@ -107,17 +107,23 @@ export class ProductService {
     await this.repository.softDeleteProduct(id);
   }
 
-  async getProductBySlug(slug: string): Promise<Product> {
+  async getProductBySlug(slug: string, user?: UserContext): Promise<Product> {
     const product = await this.repository.findProductBySlug(slug);
     if (!product || product.status === ProductStatus.ARCHIVED) {
+      throw new AppError("Product not found", 404);
+    }
+    if (product.status === ProductStatus.DRAFT && (!user || user.role !== "ADMIN")) {
       throw new AppError("Product not found", 404);
     }
     return product;
   }
 
-  async getProductById(id: string): Promise<Product> {
+  async getProductById(id: string, user?: UserContext): Promise<Product> {
     const product = await this.repository.findProductById(id);
     if (!product || product.status === ProductStatus.ARCHIVED) {
+      throw new AppError("Product not found", 404);
+    }
+    if (product.status === ProductStatus.DRAFT && (!user || user.role !== "ADMIN")) {
       throw new AppError("Product not found", 404);
     }
     return product;
