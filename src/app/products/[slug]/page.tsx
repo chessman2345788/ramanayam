@@ -9,7 +9,12 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const product = ProductService.getProductBySlug(slug);
+  let product: any = null;
+  try {
+    product = await ProductService.fetchProductBySlugFromApi(slug);
+  } catch {
+    product = ProductService.getProductBySlug(slug);
+  }
 
   if (!product) {
     return {
@@ -21,10 +26,10 @@ export async function generateMetadata({
 
   return {
     title: `${product.name} — Handcrafted Puja Essential`,
-    description: product.description,
+    description: product.description || product.shortDesc || product.fullDesc,
     openGraph: {
       title: `${product.name} | Ramanayam`,
-      description: product.description,
+      description: product.description || product.shortDesc || product.fullDesc,
       url: `${siteUrl}/products/${product.slug}`,
       siteName: "Ramanayam",
       locale: "en_IN",
@@ -48,7 +53,12 @@ export default async function ProductDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = ProductService.getProductBySlug(slug);
+  let product: any = null;
+  try {
+    product = await ProductService.fetchProductBySlugFromApi(slug);
+  } catch {
+    product = ProductService.getProductBySlug(slug);
+  }
 
   if (!product) {
     return (
@@ -70,8 +80,8 @@ export default async function ProductDetailPage({
     "@type": "Product",
     name: product.name,
     image: [product.image],
-    description: product.description,
-    sku: product.id,
+    description: product.description || product.shortDesc || product.fullDesc,
+    sku: product.sku || product.id,
     brand: {
       "@type": "Brand",
       name: "Ramanayam",

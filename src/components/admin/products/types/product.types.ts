@@ -22,11 +22,13 @@ export interface ProductImage {
 export interface Product {
   id: string;
   name: string;
+  nameHi?: string;
   slug: string;
   sku: string;
   barcode?: string;
   shortDesc: string;
   fullDesc: string;
+  description?: string;
   category: string;
   categorySlug?: string;
   categoryId?: string;

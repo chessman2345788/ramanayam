@@ -90,6 +90,8 @@ export const mapBackendProductToFrontend = (p: any): Product => {
     sku: primarySku,
     shortDesc: p.shortDescription || p.shortDesc || "",
     fullDesc: p.description || p.fullDesc || "",
+    description: p.description || p.shortDescription || p.fullDesc || p.shortDesc || "",
+    nameHi: p.nameHi || p.name_hi || "",
     category: categoryName,
     categorySlug: categorySlug,
     categoryId: p.categoryId || p.category?.id,
