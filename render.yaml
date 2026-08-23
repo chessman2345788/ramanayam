@@ -1,20 +1,17 @@
 services:
   - type: web
     name: ramanayam-backend
-    runtime: node
+    runtime: docker
     rootDir: backend
+    dockerfilePath: ./Dockerfile
     region: singapore
     plan: starter
-    buildCommand: npm run build
-    startCommand: npm run start
     healthCheckPath: /health
     envVars:
-      - key: NODE_VERSION
-        value: "20"
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 5000
+        value: "5000"
       - key: API_VERSION
         value: v1
       - key: CORS_ORIGIN
