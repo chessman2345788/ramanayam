@@ -81,10 +81,10 @@ export function Navbar() {
         zIndex:          100,
         height:          72,
         backgroundColor: scrolled ? 'rgba(253,250,246,0.96)' : 'rgba(245,240,232,0.85)',
-        backdropFilter:  'blur(20px) saturate(1.8)',
-        WebkitBackdropFilter: 'blur(20px) saturate(1.8)',
-        borderBottom:    scrolled ? '0.5px solid rgba(26,15,10,0.08)' : 'none',
-        transition:      'background-color 0.4s ease, backdrop-filter 0.4s ease, border-color 0.4s ease',
+        backdropFilter:  'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderBottom:    scrolled ? '0.5px solid rgba(26,15,10,0.08)' : '0.5px solid transparent',
+        transition:      'background-color 0.3s ease, border-color 0.3s ease',
       }}>
         <div style={{
           maxWidth: 1540, margin: '0 auto', padding: '0 clamp(20px, 4vw, 64px)',

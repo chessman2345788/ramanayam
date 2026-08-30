@@ -172,8 +172,8 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
             {/* Logo Container */}
             <div style={{ position: "relative", zIndex: 10, display: "flex", flexDirection: "column", alignItems: "center" }}>
               <motion.div
-                initial={{ opacity: 0, scale: 0.9, filter: "blur(8px)" }}
-                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
                 transition={springTransition}
                 style={{
                   position: "relative",

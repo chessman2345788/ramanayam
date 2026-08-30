@@ -18,8 +18,8 @@ export const scrollRevealVariants: Record<RevealVariant, { hidden: TargetAndTran
     visible: { opacity: 1, scale: 1 },
   },
   "blur-to-sharp": {
-    hidden: { opacity: 0, filter: "blur(8px)", y: 24 },
-    visible: { opacity: 1, filter: "blur(0px)", y: 0 },
+    hidden: { opacity: 0, scale: 0.96, y: 20 },
+    visible: { opacity: 1, scale: 1, y: 0 },
   },
   "slide-left": {
     hidden: { opacity: 0, x: -48 },
@@ -56,10 +56,10 @@ export const scaleUp: Variants = {
 };
 
 export const blurToSharp: Variants = {
-  hidden: { opacity: 0, filter: "blur(8px)", y: 24 },
+  hidden: { opacity: 0, scale: 0.96, y: 20 },
   visible: {
     opacity: 1,
-    filter: "blur(0px)",
+    scale: 1,
     y: 0,
     transition: { duration: 0.8, ease: EASE },
   },
@@ -94,11 +94,11 @@ export const parallaxUp: Variants = {
 };
 
 export const headingReveal: Variants = {
-  hidden: { opacity: 0, y: 24, filter: "blur(4px)" },
+  hidden: { opacity: 0, y: 20, scale: 0.98 },
   visible: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
+    scale: 1,
     transition: { duration: 0.7, ease: EASE },
   },
 };

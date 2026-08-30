@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
 
-const AUTO_PLAY_INTERVAL = 1500;
+const AUTO_PLAY_INTERVAL = 6000;
 
 const TESTIMONIALS = [
   {

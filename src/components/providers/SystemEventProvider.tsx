@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { eventBus } from "@/services/event-bus.service";
 import { useNotifications } from "@/components/admin/notifications/NotificationsContext";
 import { useActivity } from "@/components/admin/activity/ActivityContext";
@@ -13,12 +13,12 @@ export function SystemEventProvider({ children }: { children: React.ReactNode })
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
 
-  const currentUser = {
+  const currentUser = useMemo(() => ({
     name: user?.name || user?.email || "Executive Admin",
     email: user?.email || "admin@ramanayam.com",
     role: user?.role || "ADMIN",
     avatar: user?.profileImage || user?.avatarUrl || "/images/avatars/admin.png",
-  };
+  }), [user?.name, user?.email, user?.role, user?.profileImage, user?.avatarUrl]);
 
   useEffect(() => {
     // 1. PRODUCT_ADDED

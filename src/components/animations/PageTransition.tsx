@@ -10,7 +10,6 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
       animate={pageTransitionVariants.animate}
       exit={pageTransitionVariants.exit}
       transition={pageTransitionTransition}
-      style={{ willChange: "transform, opacity, filter" }}
     >
       {children}
     </motion.div>

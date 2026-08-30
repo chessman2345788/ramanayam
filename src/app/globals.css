@@ -70,7 +70,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  /* scroll-behavior managed by Lenis to prevent dual-engine stutter */
 }
 
 body {
