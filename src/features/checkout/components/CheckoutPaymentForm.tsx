@@ -6,6 +6,7 @@ interface CheckoutPaymentFormProps {
   onBack: () => void;
   onNext: () => void;
   loading: boolean;
+  errorMsg?: string;
 }
 
 export function CheckoutPaymentForm({
@@ -14,6 +15,7 @@ export function CheckoutPaymentForm({
   onBack,
   onNext,
   loading,
+  errorMsg,
 }: CheckoutPaymentFormProps) {
   const paymentMethods = [
     { id: "upi", label: "UPI (Google Pay, PhonePe, Paytm)", desc: "Quick secure redirection" },
@@ -49,6 +51,27 @@ export function CheckoutPaymentForm({
       >
         Select Payment Method
       </h2>
+
+      {errorMsg && (
+        <div
+          style={{
+            marginBottom: 24,
+            padding: "14px 18px",
+            borderRadius: 12,
+            background: "rgba(220, 38, 38, 0.08)",
+            border: "1px solid rgba(220, 38, 38, 0.25)",
+            color: "#B91C1C",
+            fontSize: 13,
+            lineHeight: 1.5,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
+          <span>⚠️</span>
+          <span>{errorMsg}</span>
+        </div>
+      )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {paymentMethods.map((method) => {
@@ -131,7 +154,7 @@ export function CheckoutPaymentForm({
             boxShadow: "0 6px 20px rgba(232,102,10,0.3)",
           }}
         >
-          {loading ? "Processing..." : "Place Sacred Order 🙏"}
+          {loading ? "Processing Payment..." : "Place Sacred Order 🙏"}
         </button>
       </div>
     </motion.div>

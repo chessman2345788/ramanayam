@@ -6,7 +6,7 @@ import { PaymentsRepository } from "./payment.repository";
 import { RazorpayService } from "./razorpay.service";
 import { WebhookService } from "./webhook.service";
 import { prisma } from "../../prisma";
-import { authenticate } from "../auth/auth.middleware";
+import { authenticate, optionalAuthenticate } from "../auth/auth.middleware";
 import { validateRequest } from "../../components/validation";
 import {
   createRazorpayOrderSchema,
@@ -48,37 +48,46 @@ router.post(
   controller.handleWebhook,
 );
 
-// Authenticated Routes
-router.use(authenticate);
-
-// Canonical Razorpay Payment Endpoints
+// Canonical Razorpay Payment Endpoints (supports optional auth for guest or logged-in users)
 router.post(
   "/create-order",
+  optionalAuthenticate,
   validateRequest(createRazorpayOrderSchema),
   controller.createOrder,
 );
 
 router.post(
   "/verify",
+  optionalAuthenticate,
   validateRequest(verifyRazorpayPaymentSchema),
   controller.verifyPayment,
 );
 
-// Query Endpoints
+router.post(
+  "/verify-payment",
+  optionalAuthenticate,
+  validateRequest(verifyRazorpayPaymentSchema),
+  controller.verifyPayment,
+);
+
+// Query Endpoints (strictly authenticated)
 router.get(
   "/history",
+  authenticate,
   validateRequest(paymentHistoryQuerySchema),
   controller.getHistory,
 );
 
 router.get(
   "/order/:orderId",
+  authenticate,
   validateRequest(getOrderByOrderIdParamsSchema),
   controller.getByOrderId,
 );
 
 router.get(
   "/:id",
+  authenticate,
   validateRequest(getPaymentParamsSchema),
   controller.get,
 );

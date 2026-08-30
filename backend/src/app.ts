@@ -125,6 +125,7 @@ app.get("/health", (_req: Request, res: Response) => {
 
 // ─── API Routes ───────────────────────────────────────────────────────
 app.use("/api/v1", apiRouter);
+app.use("/api", apiRouter);
 
 // ─── 404 Handler ─────────────────────────────────────────────────────
 app.use(notFoundHandler);

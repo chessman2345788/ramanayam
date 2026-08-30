@@ -60,4 +60,18 @@ router.use("/coupons", couponRoutes);
 router.use("/cms", cmsRoutes);
 router.use("/settings", settingsRoutes);
 
+// Canonical Razorpay aliases for direct endpoint access
+router.post("/create-order", (req, res, next) => {
+  req.url = "/create-order";
+  paymentRoutes(req, res, next);
+});
+router.post("/verify-payment", (req, res, next) => {
+  req.url = "/verify-payment";
+  paymentRoutes(req, res, next);
+});
+router.post("/verify", (req, res, next) => {
+  req.url = "/verify";
+  paymentRoutes(req, res, next);
+});
+
 export default router;

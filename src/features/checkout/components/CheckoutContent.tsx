@@ -42,6 +42,7 @@ export function CheckoutContent() {
     setStateName,
     isFormValid,
     loading,
+    errorMsg,
     handleNextStep,
     handlePrevStep,
   } = useCheckout();
@@ -113,6 +114,7 @@ export function CheckoutContent() {
                     onBack={handlePrevStep}
                     onNext={handleNextStep}
                     loading={loading}
+                    errorMsg={errorMsg}
                   />
                 )}
 

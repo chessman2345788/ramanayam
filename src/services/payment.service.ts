@@ -32,10 +32,10 @@ export const loadRazorpayScript = (): Promise<boolean> => {
 export const PaymentService = {
   createRazorpayOrder: async (payload: CreateRazorpayOrderPayload) => {
     const res = await axiosClient.post("/payments/create-order", payload);
-    const data = res.data?.data?.order || res.data?.order || res.data;
+    const data = res.data?.data?.order || res.data?.data || res.data?.order || res.data;
     return {
       key_id: data.key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
-      order_id: data.id || data.order_id,
+      order_id: data.order_id || data.id,
       amount: data.amount,
       currency: data.currency || "INR",
     };

@@ -85,8 +85,8 @@ export class PaymentsService {
       amountInPaise = Math.round(Number(order.totalAmount) * 100);
     }
 
-    if (!amountInPaise || amountInPaise < 100) {
-      throw new AppError("Amount must be at least 100 paise (₹1)", 400);
+    if (!amountInPaise || !Number.isInteger(amountInPaise) || amountInPaise < 100) {
+      throw new AppError("Amount must be an integer and at least 100 paise (₹1)", 400);
     }
 
     const currency = payload.currency || "INR";
@@ -134,23 +134,10 @@ export class PaymentsService {
       throw new AppError("Missing required payment verification fields", 400);
     }
 
-    // Verify cryptographic signature timing-safely
-    const isAuthentic = this.razorpayService.verifyPaymentSignature({
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-    });
-
     let targetOrderId = orderId;
+    let serverOrderId = razorpay_order_id;
 
-    // If orderId was not passed explicitly, attempt to find order via stored Razorpay Order ID in transactionId
-    if (!targetOrderId) {
-      const paymentRecord = await this.repository.findByTransactionId(razorpay_order_id);
-      if (paymentRecord) {
-        targetOrderId = paymentRecord.orderId;
-      }
-    }
-
+    // Retrieve order from database when available to guarantee server authority
     if (targetOrderId) {
       const order = await this.repository.findOrderById(targetOrderId);
       if (!order) {
@@ -161,13 +148,37 @@ export class PaymentsService {
       if (userId && order.userId !== userId) {
         throw new AppError("Forbidden: You do not have permission to verify this order payment", 403);
       }
+
+      // Check if a payment record exists with the stored transactionId
+      const pendingPayment = order.payments?.find(
+        (p) => p.transactionId === razorpay_order_id || p.status === PaymentStatus.PENDING,
+      );
+      if (pendingPayment?.transactionId) {
+        serverOrderId = pendingPayment.transactionId;
+      }
+    } else {
+      const paymentRecord = await this.repository.findByTransactionId(razorpay_order_id);
+      if (paymentRecord) {
+        targetOrderId = paymentRecord.orderId;
+        serverOrderId = paymentRecord.transactionId || razorpay_order_id;
+        if (userId && paymentRecord.order?.userId !== userId) {
+          throw new AppError("Forbidden: You do not have permission to verify this order payment", 403);
+        }
+      }
     }
+
+    // Cryptographic HMAC-SHA256 signature verification using serverOrderId
+    const isAuthentic = this.razorpayService.verifyPaymentSignature({
+      razorpay_order_id: serverOrderId,
+      razorpay_payment_id,
+      razorpay_signature,
+    });
 
     if (!isAuthentic) {
       if (targetOrderId) {
         await this.repository.updatePaymentFailedTx(targetOrderId, razorpay_payment_id);
       }
-      throw new AppError("Invalid payment signature. Verification failed.", 400);
+      throw new AppError("Payment verification failed", 400);
     }
 
     // Signature verified! Atomically update order status to CONFIRMED and payment status to SUCCESS
@@ -177,10 +188,10 @@ export class PaymentsService {
     }
 
     return {
-      verified: true,
-      message: "Payment signature verified successfully and order confirmed",
+      success: true,
+      message: "Payment verified successfully",
       razorpay_payment_id,
-      razorpay_order_id,
+      razorpay_order_id: serverOrderId,
       order: result?.order,
     };
   }

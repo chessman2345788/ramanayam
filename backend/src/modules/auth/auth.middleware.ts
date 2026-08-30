@@ -19,6 +19,22 @@ export const authenticate = (req: Request, _res: Response, next: NextFunction): 
   }
 };
 
+export const optionalAuthenticate = (req: Request, _res: Response, next: NextFunction): void => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return next();
+  }
+
+  const token = authHeader.split(" ")[1];
+  try {
+    const decoded = verifyAccessToken(token);
+    (req as RequestWithUser).user = decoded;
+  } catch {
+    // If token is malformed/expired in optional auth, proceed as unauthenticated guest
+  }
+  next();
+};
+
 export const authorize = (roles: string[]) => {
   return (req: Request, _res: Response, next: NextFunction): void => {
     const user = (req as RequestWithUser).user;
@@ -30,3 +46,4 @@ export const authorize = (roles: string[]) => {
     next();
   };
 };
+

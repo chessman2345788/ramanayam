@@ -94,10 +94,10 @@ export function useCheckout() {
       });
 
       const options = {
-        key: razorpayOrder.key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TGd9JVfCFfrpxa",
+        key: razorpayOrder.key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency || "INR",
-        name: "Ramanayam E-Commerce",
+        name: "Ramanayam",
         description: "Payment for Sacred Order #" + currentOrderId,
         order_id: razorpayOrder.order_id,
         handler: async function (response: any) {
@@ -114,7 +114,7 @@ export function useCheckout() {
               clearCart();
               setStep(3);
             } else {
-              setErrorMsg("Payment verification failed.");
+              setErrorMsg("Payment verification failed. Please contact support.");
             }
           } catch (err: any) {
             setErrorMsg(err.message || "Payment signature verification failed.");
@@ -127,12 +127,12 @@ export function useCheckout() {
           contact: phone,
         },
         theme: {
-          color: "#D97706",
+          color: "#E8660A",
         },
         modal: {
           ondismiss: function () {
             setLoading(false);
-            setErrorMsg("Payment cancelled by user.");
+            setErrorMsg("Payment cancelled. You can retry whenever you are ready.");
           },
         },
       };
@@ -140,7 +140,7 @@ export function useCheckout() {
       const razorpayInstance = new (window as any).Razorpay(options);
       razorpayInstance.on("payment.failed", function (response: any) {
         setLoading(false);
-        setErrorMsg(response.error?.description || "Payment failed. Please try again.");
+        setErrorMsg(response.error?.description || "Payment failed. Please try again or choose another method.");
       });
 
       razorpayInstance.open();
