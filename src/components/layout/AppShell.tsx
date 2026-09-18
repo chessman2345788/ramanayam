@@ -32,8 +32,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   const isAdmin = pathname.startsWith("/admin");
+  const isLaunchMode = process.env.NEXT_PUBLIC_LAUNCH_MODE === "true";
 
-  if (isAdmin) {
+  // Bypass full shell for admin pages and the launch page
+  if (isAdmin || (isLaunchMode && pathname === "/")) {
     return (
       <main id="main-content" style={{ minHeight: "100vh" }}>
         {children}

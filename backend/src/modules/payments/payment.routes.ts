@@ -24,10 +24,9 @@ const webhookService = new WebhookService(repository, razorpayService);
 const service = new PaymentsService(repository, razorpayService);
 const controller = new PaymentsController(service, webhookService);
 
-// ─── Middleware to capture raw body for Razorpay HMAC verification ─────
-const captureRawBody = [
-  express.raw({ type: "application/json" }),
-  (req: Request, _res: Response, next: NextFunction) => {
+// ─── Ensure raw body buffer is available for Razorpay HMAC verification ──
+const ensureRawBody = (req: Request, _res: Response, next: NextFunction) => {
+  if (!(req as any).rawBody) {
     if (Buffer.isBuffer(req.body)) {
       (req as any).rawBody = req.body;
       try {
@@ -35,16 +34,17 @@ const captureRawBody = [
       } catch {
         req.body = {};
       }
+    } else if (req.body && typeof req.body === "object") {
+      (req as any).rawBody = Buffer.from(JSON.stringify(req.body));
     }
-    next();
-  },
-];
+  }
+  next();
+};
 
 // Unauthenticated Webhook Endpoint (HMAC Signature Validation via Razorpay)
-// MUST use captureRawBody to preserve the original payload bytes for HMAC.
 router.post(
   "/webhook",
-  captureRawBody,
+  ensureRawBody,
   controller.handleWebhook,
 );
 

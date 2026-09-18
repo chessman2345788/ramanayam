@@ -41,12 +41,18 @@ export const createHashFingerprint = (passwordHash: string): string => {
 
 // ─── Token Generation ────────────────────────────────────────────────
 export const generateAccessToken = (payload: { id: string; role: string }): string => {
-  const options: SignOptions = { expiresIn: AUTH_CONSTANTS.ACCESS_TOKEN_EXPIRY as SignOptions["expiresIn"] };
+  const options: SignOptions = {
+    algorithm: "HS256",
+    expiresIn: AUTH_CONSTANTS.ACCESS_TOKEN_EXPIRY as SignOptions["expiresIn"],
+  };
   return jwt.sign(payload, JWT_SECRET, options);
 };
 
 export const generateRefreshToken = (payload: { id: string }): string => {
-  const options: SignOptions = { expiresIn: AUTH_CONSTANTS.REFRESH_TOKEN_EXPIRY as SignOptions["expiresIn"] };
+  const options: SignOptions = {
+    algorithm: "HS256",
+    expiresIn: AUTH_CONSTANTS.REFRESH_TOKEN_EXPIRY as SignOptions["expiresIn"],
+  };
   return jwt.sign(payload, JWT_REFRESH_SECRET, options);
 };
 
@@ -55,19 +61,22 @@ export const generateResetToken = (payload: {
   email: string;
   hashFingerprint: string;
 }): string => {
-  const options: SignOptions = { expiresIn: AUTH_CONSTANTS.RESET_TOKEN_EXPIRY as SignOptions["expiresIn"] };
+  const options: SignOptions = {
+    algorithm: "HS256",
+    expiresIn: AUTH_CONSTANTS.RESET_TOKEN_EXPIRY as SignOptions["expiresIn"],
+  };
   return jwt.sign(payload, JWT_SECRET, options);
 };
 
-// ─── Token Verification ─────────────────────────────────────────────
+// ─── Token Verification (Pinned to HS256 to prevent algorithm confusion) ────
 export const verifyAccessToken = (token: string): TokenPayload => {
-  return jwt.verify(token, JWT_SECRET) as TokenPayload;
+  return jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] }) as TokenPayload;
 };
 
 export const verifyRefreshToken = (token: string): RefreshTokenPayload => {
-  return jwt.verify(token, JWT_REFRESH_SECRET) as RefreshTokenPayload;
+  return jwt.verify(token, JWT_REFRESH_SECRET, { algorithms: ["HS256"] }) as RefreshTokenPayload;
 };
 
 export const verifyResetToken = (token: string): ResetTokenPayload => {
-  return jwt.verify(token, JWT_SECRET) as ResetTokenPayload;
+  return jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] }) as ResetTokenPayload;
 };

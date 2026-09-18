@@ -82,8 +82,14 @@ app.use(
 // ─── Compression ─────────────────────────────────────────────────────
 app.use(compression());
 
-// ─── Request Parsers (strict limits to prevent DoS) ──────────────────
-app.use(express.json({ limit: "50kb" }));
+app.use(
+  express.json({
+    limit: "50kb",
+    verify: (req: Request, _res: Response, buf: Buffer) => {
+      (req as any).rawBody = buf;
+    },
+  }),
+);
 app.use(express.urlencoded({ extended: true, limit: "50kb" }));
 app.use(cookieParser(process.env.COOKIE_SECRET || "__fallback_cookie_secret__"));
 

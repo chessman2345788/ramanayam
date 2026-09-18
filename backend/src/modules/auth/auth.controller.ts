@@ -23,10 +23,11 @@ export class AuthController {
   };
 
   logout = async (_req: RequestWithUser, res: Response): Promise<void> => {
+    const cookieOpts = getCookieOptions();
     res.clearCookie(AUTH_CONSTANTS.COOKIE_NAME, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      secure: cookieOpts.secure,
+      sameSite: cookieOpts.sameSite,
       path: "/",
     });
     sendSuccess(res, "Logout successful");

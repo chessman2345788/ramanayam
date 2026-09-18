@@ -172,7 +172,19 @@ export const imageUploadSchema = z.object({
     productId: z.string().uuid("Invalid product ID format"),
   }),
   body: z.object({
-    imageUrl: z.string().min(1, "Image URL is required"),
+    imageUrl: z
+      .string()
+      .trim()
+      .min(1, "Image URL is required")
+      .max(2000, "Image URL is too long")
+      .refine(
+        (url) =>
+          url.startsWith("https://") ||
+          url.startsWith("http://") ||
+          url.startsWith("/") ||
+          url.startsWith("data:image/"),
+        { message: "Image URL must be a valid HTTP/HTTPS URL, relative path, or data URI" },
+      ),
     altText: z.string().max(200).optional().nullable(),
     isPrimary: z.boolean().optional().default(false),
     sortOrder: z.number().int().optional().default(0),
