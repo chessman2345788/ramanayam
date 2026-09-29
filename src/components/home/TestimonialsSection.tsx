@@ -31,7 +31,7 @@ const TESTIMONIALS = [
     rating: 5,
   },
   {
-    text: 'Live Darshan streaming paired with authentic Temple Prasad delivered to our doorstep. Ramanayam is truly bringing modern spiritualism to life.',
+    text: 'Live Darshan streaming paired with authentic Temple Prasad delivered to our doorstep. Ramayanam is truly bringing modern spiritualism to life.',
     name: 'Dr. Meera Kulkarni',
     city: 'Pune',
     rating: 5,

@@ -16,9 +16,9 @@ export function Footer() {
         >
           {/* Left: Brand logo & Tagline */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-            <Image src="/logo-transparent.png" alt="Ramanayam" width={34} height={34} style={{ objectFit: 'contain', opacity: 0.85 }} />
+            <Image src="/logo-transparent.png" alt="Ramayanam" width={34} height={34} style={{ objectFit: 'contain', opacity: 0.85 }} />
             <div>
-              <p style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 20, fontWeight: 600, color: '#1A0F0A', margin: 0, lineHeight: 1.2 }}>Ramanayam</p>
+              <p style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: 20, fontWeight: 600, color: '#1A0F0A', margin: 0, lineHeight: 1.2 }}>Ramayanam</p>
               <p style={{ fontSize: 12, color: 'rgba(26,15,10,0.48)', margin: 0 }}>Sacred Rituals, Modern Living</p>
             </div>
           </div>
@@ -55,7 +55,7 @@ export function Footer() {
             ‖ श्रद्धा और शिल्प ‖
           </p>
           <p style={{ fontSize: 12, color: 'rgba(26,15,10,0.45)', margin: '6px 0 0' }}>
-            © {new Date().getFullYear()} Ramanayam. All rights reserved.
+            © {new Date().getFullYear()} Ramayanam. All rights reserved.
             <span style={{ margin: '0 8px', opacity: 0.5 }}>•</span>
             Developed by{' '}
             <a

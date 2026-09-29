@@ -6,13 +6,13 @@ const isLaunchMode = process.env.NEXT_PUBLIC_LAUNCH_MODE === "true";
 
 export const metadata: Metadata = isLaunchMode
   ? {
-      title: "Ramanayam — Launching Soon",
+      title: "Ramayanam — Launching Soon",
       description:
-        "Ramanayam is coming soon — a premium destination for Puja Samagri, Bhagwan Vastra, Temple Shringar and devotional essentials.",
+        "Ramayanam is coming soon — a premium destination for Puja Samagri, Bhagwan Vastra, Temple Shringar and devotional essentials.",
       openGraph: {
-        title: "Ramanayam — Launching Soon",
+        title: "Ramayanam — Launching Soon",
         description:
-          "Ramanayam is coming soon — a premium destination for Puja Samagri, Bhagwan Vastra, Temple Shringar and devotional essentials.",
+          "Ramayanam is coming soon — a premium destination for Puja Samagri, Bhagwan Vastra, Temple Shringar and devotional essentials.",
       },
     }
   : {};

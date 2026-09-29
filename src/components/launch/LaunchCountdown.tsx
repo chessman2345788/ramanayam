@@ -168,7 +168,7 @@ export function LaunchCountdown() {
             transition: "transform 0.25s ease, boxShadow 0.25s ease",
           }}
         >
-          Enter Ramanayam <span style={{ fontSize: 16 }}>→</span>
+          Enter Ramayanam <span style={{ fontSize: 16 }}>→</span>
         </a>
       </motion.div>
     );

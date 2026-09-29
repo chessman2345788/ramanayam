@@ -10,8 +10,8 @@ import { SystemEventProvider } from "@/components/providers/SystemEventProvider"
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://ramayanam.in"),
   title: {
-    default: "Ramanayam — Sacred Rituals, Modern Living",
-    template: "%s | Ramanayam",
+    default: "Ramayanam — Sacred Rituals, Modern Living",
+    template: "%s | Ramayanam",
   },
   description:
     "A premium spiritual lifestyle brand. Handcrafted puja essentials, artisan idols, brass diyas, rudraksha malas, and sacred décor — curated for the modern devotee. Delivered pan-India with reverence.",
@@ -23,29 +23,29 @@ export const metadata: Metadata = {
     "rudraksha mala",
     "sacred decor",
     "premium puja",
-    "Ramanayam",
+    "Ramayanam",
     "temple products",
     "live darshan",
   ],
-  authors: [{ name: "Ramanayam Spiritual Living" }],
-  creator: "Ramanayam",
-  publisher: "Ramanayam",
+  authors: [{ name: "Ramayanam Spiritual Living" }],
+  creator: "Ramayanam",
+  publisher: "Ramayanam",
   robots: {
     index: true,
     follow: true,
   },
   openGraph: {
-    title: "Ramanayam — Sacred Rituals, Modern Living",
+    title: "Ramayanam — Sacred Rituals, Modern Living",
     description:
       "A premium spiritual lifestyle brand. Handcrafted puja essentials curated for the modern devotee.",
     url: "https://ramayanam.in",
-    siteName: "Ramanayam",
+    siteName: "Ramayanam",
     locale: "en_IN",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ramanayam — Sacred Rituals, Modern Living",
+    title: "Ramayanam — Sacred Rituals, Modern Living",
     description: "Handcrafted puja essentials curated for the modern devotee.",
   },
 };

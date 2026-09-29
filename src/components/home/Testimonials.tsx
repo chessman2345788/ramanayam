@@ -19,7 +19,7 @@ const REVIEWS = [
   {
     name: "Dr. Meera Kulkarni",
     location: "Pune",
-    text: "Live Darshan streaming paired with authentic Temple Prasad delivered straight to our doorstep. Ramanayam is truly bringing modern spiritualism to life.",
+    text: "Live Darshan streaming paired with authentic Temple Prasad delivered straight to our doorstep. Ramayanam is truly bringing modern spiritualism to life.",
     product: "Divine Ritual Box",
   },
 ];

@@ -89,7 +89,7 @@ export function LaunchNotifyForm() {
             color: "rgba(245, 230, 208, 0.65)",
           }}
         >
-          We will send you a private invitation when Ramanayam launches.
+          We will send you a private invitation when Ramayanam launches.
         </p>
       </motion.div>
     );

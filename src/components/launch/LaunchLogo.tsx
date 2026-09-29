@@ -169,7 +169,7 @@ export function LaunchLogo() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo-transparent.png"
-            alt="Ramanayam Emblem"
+            alt="Ramayanam Emblem"
             width={704}
             height={592}
             fetchPriority="high"

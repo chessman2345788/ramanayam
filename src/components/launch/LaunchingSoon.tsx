@@ -122,7 +122,7 @@ export function LaunchingSoon() {
               lineHeight: 1,
             }}
           >
-            RAMANAYAM
+            RAMAYANAM
           </h2>
 
           <p
@@ -190,7 +190,7 @@ export function LaunchingSoon() {
             margin: "0 0 clamp(32px, 4.5vh, 52px)",
           }}
         >
-          Ramanayam is preparing a new sanctuary for authentic Puja Samagri,
+          Ramayanam is preparing a new sanctuary for authentic Puja Samagri,
           Bhagwan&nbsp;Vastra, Temple Shringar, and sacred essentials — curated
           with reverence for your spiritual journey.
         </motion.p>
@@ -236,7 +236,7 @@ export function LaunchingSoon() {
             letterSpacing: "0.06em",
           }}
         >
-          &copy; {new Date().getFullYear()} Ramanayam &middot; Sacred Rituals &middot;
+          &copy; {new Date().getFullYear()} Ramayanam &middot; Sacred Rituals &middot;
           Modern Living
         </p>
       </motion.footer>

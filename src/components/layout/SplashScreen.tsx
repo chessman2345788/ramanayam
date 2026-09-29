@@ -184,7 +184,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
               >
                 <Image
                   src="/logo-transparent.png"
-                  alt="Ramanayam"
+                  alt="Ramayanam"
                   fill
                   priority
                   style={{ objectFit: "contain" }}
@@ -205,7 +205,7 @@ export function SplashScreen({ onComplete }: { onComplete: () => void }) {
                   margin: "0 0 6px",
                 }}
               >
-                RAMANAYAM
+                RAMAYANAM
               </motion.h2>
 
               {/* Subtitle */}

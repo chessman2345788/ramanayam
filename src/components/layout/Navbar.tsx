@@ -98,7 +98,7 @@ export function Navbar() {
           }}>
             <Image
               src="/logo-transparent.png"
-              alt="Ramanayam"
+              alt="Ramayanam"
               width={38} height={38}
               priority
               style={{ objectFit: 'contain' }}
@@ -112,7 +112,7 @@ export function Navbar() {
               transition:    'color 0.3s ease',
               userSelect:    'none',
             }}>
-              Ramanayam
+              Ramayanam
             </span>
           </Link>
 
@@ -300,7 +300,7 @@ export function Navbar() {
               fontSize: 10, fontWeight: 700,
               letterSpacing: '0.22em', textTransform: 'uppercase',
               color: '#C9A84C', marginBottom: 24,
-            }}>Search Ramanayam</p>
+            }}>Search Ramayanam</p>
 
             <form
               onSubmit={(e) => handleSearch(e)}
