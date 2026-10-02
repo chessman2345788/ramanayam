@@ -6,11 +6,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 const CATEGORIES = [
-  { slug: 'puja-essentials',  name: 'Puja Essentials',  count: 48, isFeatured: true, image: 'https://images.unsplash.com/photo-1605647540924-852290f6b0d5?w=1000&auto=format&fit=crop&q=80' },
-  { slug: 'idols-shrines',    name: 'Idols & Shrines',  count: 35, isFeatured: false, image: 'https://images.unsplash.com/photo-1567591414240-e14b533d3958?w=1000&auto=format&fit=crop&q=80' },
-  { slug: 'lamps-diyas',      name: 'Lamps & Diyas',    count: 28, isFeatured: false, image: 'https://images.unsplash.com/photo-1509172237893-6c8f497a5f54?w=1000&auto=format&fit=crop&q=80' },
-  { slug: 'spiritual-wear',   name: 'Spiritual Wear',   count: 42, isFeatured: false, image: 'https://images.unsplash.com/photo-1616046229478-9901c5536a45?w=1000&auto=format&fit=crop&q=80' },
-  { slug: 'decor-offerings',  name: 'Decor & Offerings', count: 31, isFeatured: false, image: 'https://images.unsplash.com/photo-1545232979-fbf5929de441?w=1000&auto=format&fit=crop&q=80' },
+  { slug: 'pooja-samagri',           name: 'Pooja Samagri',           count: 26, isFeatured: true,  image: 'https://images.unsplash.com/photo-1609137144822-42173f4b66df?w=1000&auto=format&fit=crop&q=80' },
+  { slug: 'murti',                  name: 'Murti & Idols',          count: 12, isFeatured: false, image: 'https://images.unsplash.com/photo-1567591414240-e14b533d3958?w=1000&auto=format&fit=crop&q=80' },
+  { slug: 'pooja-thali-accessories', name: 'Pooja Thali & Diyas',   count: 14, isFeatured: false, image: 'https://images.unsplash.com/photo-1542397284-3b167fe665d7?w=1000&auto=format&fit=crop&q=80' },
+  { slug: 'bhagwan-vastra',         name: 'Bhagwan Vastra',         count: 12, isFeatured: false, image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1000&auto=format&fit=crop&q=80' },
+  { slug: 'festival-special',       name: 'Festival Special Kits',  count: 9,  isFeatured: false, image: 'https://images.unsplash.com/photo-1616046229478-9901c5536a45?w=1000&auto=format&fit=crop&q=80' },
 ];
 
 function CategoryCard({

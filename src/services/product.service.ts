@@ -25,13 +25,18 @@ const proxyGet = async (path: string, params?: Record<string, any>): Promise<any
     const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://ramanayam.onrender.com/api/v1";
     const directUrl = `${API_BASE}/${path}${queryString ? `?${queryString}` : ""}`;
     const res = await fetch(directUrl, { cache: "no-store" });
-    return res.json();
+    if (!res.ok) throw new Error(`Backend returned ${res.status}`);
+    const json = await res.json();
+    if (!json || json.success === false) throw new Error(json?.message || "Backend request failed");
+    return json;
   }
 
   // In browser, route through the Next.js API proxy to bypass CORS
   const res = await fetch(proxyUrl);
   if (!res.ok) throw new Error(`Proxy returned ${res.status}`);
-  return res.json();
+  const json = await res.json();
+  if (!json || json.success === false) throw new Error(json?.message || "Proxy request failed");
+  return json;
 };
 
 export interface FetchProductsResponse {
@@ -82,6 +87,13 @@ const mapStatusToBackend = (frontendStatus?: string): string => {
 };
 
 export const mapBackendProductToFrontend = (p: any): Product => {
+  if (!p || p.success === false) {
+    throw new Error("Invalid product data");
+  }
+  if (!p.id && !p.name && !p.slug) {
+    throw new Error("Missing required product fields");
+  }
+
   const primaryVariant = p.variants?.[0] || {};
   const primaryPrice = Number(primaryVariant.price || p.price || 0);
   const primaryMrp = Number(primaryVariant.compareAtPrice || p.mrp || (primaryPrice > 0 ? primaryPrice * 1.25 : 0));
@@ -89,12 +101,12 @@ export const mapBackendProductToFrontend = (p: any): Product => {
   const primarySku = primaryVariant.sku || p.sku || `SKU-${p.id?.slice(0, 8) || "0000"}`;
 
   const primaryImageObj = p.images?.find((img: any) => img.isPrimary) || p.images?.[0];
-  const primaryImageUrl = primaryImageObj?.imageUrl || primaryImageObj?.url || "/images/products/placeholder.jpg";
+  const primaryImageUrl = primaryImageObj?.imageUrl || primaryImageObj?.url || "https://images.unsplash.com/photo-1609137144822-42173f4b66df?w=800&auto=format&fit=crop&q=80";
 
   const formattedImages = Array.isArray(p.images) && p.images.length > 0
     ? p.images.map((img: any, idx: number) => ({
         id: img.id || `img-${idx}`,
-        url: img.imageUrl || img.url || "/images/products/placeholder.jpg",
+        url: img.imageUrl || img.url || primaryImageUrl,
         altText: img.altText || p.name,
         isPrimary: img.isPrimary ?? (idx === 0),
       }))
@@ -425,11 +437,20 @@ export const ProductService = {
   fetchProductBySlugFromApi: async (slug: string): Promise<Product> => {
     try {
       const payload = await proxyGet(`products/slug/${slug}`);
-      const raw = payload.data?.product || payload.product || payload.data || payload;
+      if (!payload || payload.success === false) {
+        throw new Error("Product fetch not successful");
+      }
+      const raw = payload.data?.product || payload.product || payload.data;
+      if (!raw || (!raw.name && !raw.id)) {
+        throw new Error("Product not found in API payload");
+      }
       return mapBackendProductToFrontend(raw);
     } catch {
       const res = await axiosClient.get(`/products/slug/${slug}`);
-      const raw = res.data?.data?.product || res.data?.product || res.data?.data || res.data;
+      const raw = res.data?.data?.product || res.data?.product || res.data?.data;
+      if (!raw || (!raw.name && !raw.id)) {
+        throw new Error("Product not found via axios");
+      }
       return mapBackendProductToFrontend(raw);
     }
   },

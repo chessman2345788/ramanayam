@@ -9,44 +9,48 @@ import { useCartStore } from '@/store/cart';
 
 const FEATURED = [
   {
-    id: 'premium-agarbatti',
-    name: 'Premium Agarbatti Collection',
-    subtitle: 'Hand-rolled natural incense sticks',
-    category: 'Puja Essentials',
-    price: 349, mrp: 499,
+    id: 'agarbatti',
+    slug: 'agarbatti',
+    name: 'Agarbatti (Incense Sticks)',
+    subtitle: 'Hand-rolled natural incense (16–170 sticks)',
+    category: 'Pooja Samagri',
+    price: 171, mrp: 332,
     rating: 4.8, reviews: 234,
-    image: 'https://images.unsplash.com/photo-1605647540924-852290f6b0d5?w=800&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1609137144822-42173f4b66df?w=800&auto=format&fit=crop&q=80',
     badges: ['Pure', 'Handmade'],
   },
   {
-    id: 'brass-ganesh-murti',
-    name: 'Brass Ganesh Murti',
-    subtitle: 'Handcrafted solid brass idol',
-    category: 'Idols & Shrines',
-    price: 2499, mrp: 3499,
+    id: 'ram-darbar-murti',
+    slug: 'ram-darbar-murti',
+    name: 'Ram Darbar Murti',
+    subtitle: 'Handcrafted solid brass and marble deity idols',
+    category: 'Murti',
+    price: 125200, mrp: 250000,
     rating: 4.9, reviews: 156,
     image: 'https://images.unsplash.com/photo-1567591414240-e14b533d3958?w=800&auto=format&fit=crop&q=80',
     badges: ['Handmade', 'Pure Brass'],
   },
   {
-    id: 'brass-diya-set',
-    name: 'Traditional Brass Diya Set (5 pcs)',
-    subtitle: 'Set of 5 handcrafted brass diyas',
-    category: 'Lamps & Diyas',
-    price: 799, mrp: 1199,
+    id: 'diya',
+    slug: 'diya',
+    name: 'Traditional Brass Diya',
+    subtitle: 'Handcrafted heavy brass diya for daily worship',
+    category: 'Pooja Thali & Accessories',
+    price: 361, mrp: 572,
     rating: 4.7, reviews: 312,
     image: 'https://images.unsplash.com/photo-1509172237893-6c8f497a5f54?w=800&auto=format&fit=crop&q=80',
     badges: ['Pure Brass', 'Handmade'],
   },
   {
-    id: 'rudraksha-mala',
-    name: 'Rudraksha Mala (108 Beads)',
-    subtitle: 'Authentic 5-Mukhi rudraksha',
-    category: 'Spiritual Wear',
-    price: 1299, mrp: 1899,
+    id: 'janmashtami-kit',
+    slug: 'janmashtami-kit',
+    name: 'Janmashtami Puja Kit',
+    subtitle: 'Complete festive kit with poshak and shringar',
+    category: 'Festival Special',
+    price: 1050, mrp: 1600,
     rating: 4.9, reviews: 189,
     image: 'https://images.unsplash.com/photo-1616046229478-9901c5536a45?w=800&auto=format&fit=crop&q=80',
-    badges: ['Organic', 'Certified'],
+    badges: ['Complete Kit', 'Vedic'],
   },
 ];
 
@@ -71,7 +75,7 @@ function ProductCard({ product, index }: { product: typeof FEATURED[0]; index: n
       variants={{ hidden: { opacity: 0, y: 28 }, visible: { opacity: 1, y: 0 } }}
       transition={{ delay: index * 0.08, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
     >
-      <Link href={`/products/${product.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+      <Link href={`/products/${product.slug || product.id}`} style={{ textDecoration: 'none', display: 'block' }}>
         <div
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}

@@ -18,7 +18,7 @@ const FESTIVALS_DATA = [
     name: 'Navratri',
     nameHi: 'नवरात्रि',
     description: 'Nine Nights of the Goddess — special puja items for Durga worship.',
-    image: 'https://images.unsplash.com/photo-1605647540924-852290f6b0d5?w=800&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800&auto=format&fit=crop&q=80',
   },
   {
     slug: 'ganesh-chaturthi',
@@ -53,7 +53,7 @@ const FESTIVALS_DATA = [
     name: 'Daily Puja',
     nameHi: 'दैनिक पूजा',
     description: 'Your everyday spiritual practice — essentials for morning and evening worship.',
-    image: 'https://images.unsplash.com/photo-1605647540924-852290f6b0d5?w=800&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1609137144822-42173f4b66df?w=800&auto=format&fit=crop&q=80',
   },
 ];
 

@@ -8,6 +8,18 @@ const startServer = async () => {
   // Establish database connection
   await connectDatabase();
 
+  // Auto-seed official Ramanayam catalogue if empty or incomplete
+  try {
+    const productCount = await prisma.product.count();
+    if (productCount < 20) {
+      logger.info(`Database has only ${productCount} products. Seeding official Ramanayam catalogue...`);
+      const { seedCatalogue } = await import("../prisma/seeds/catalogue.seed");
+      await seedCatalogue();
+    }
+  } catch (seedErr) {
+    logger.warn("Automatic catalogue seed notice:", seedErr);
+  }
+
   const server = app.listen(PORT, () => {
     logger.info(`Server is running in ${process.env.NODE_ENV} mode on port ${PORT}`);
   });

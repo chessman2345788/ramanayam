@@ -14,22 +14,16 @@ export interface FilterState {
 }
 
 const CATEGORY_ALIASES: Record<string, string[]> = {
-  "idols-murtis": ["idols-murtis", "murti", "idols-shrines", "mandir", "yantra"],
-  "murti": ["murti", "idols-murtis", "idols-shrines", "mandir"],
-  "mandir": ["mandir", "idols-murtis", "murti"],
-  "puja-brassware": ["puja-brassware", "brass-copper-items", "pooja-thali-accessories", "shankh-bells"],
-  "brass-copper-items": ["brass-copper-items", "puja-brassware", "pooja-thali-accessories", "shankh-bells"],
-  "pooja-thali-accessories": ["pooja-thali-accessories", "puja-brassware", "brass-copper-items"],
-  "incense-fragrances": ["incense-fragrances", "home-fragrance"],
-  "home-fragrance": ["home-fragrance", "incense-fragrances"],
-  "samagri-kits": ["samagri-kits", "pooja-samagri", "pooja-kits", "festival-special", "bhog-prasad", "books-scriptures"],
-  "pooja-samagri": ["pooja-samagri", "samagri-kits", "pooja-kits"],
-  "pooja-kits": ["pooja-kits", "samagri-kits", "pooja-samagri"],
-  "temple-decor": ["temple-decor", "temple-decoration", "gift-items", "spiritual-accessories"],
-  "temple-decoration": ["temple-decoration", "temple-decor"],
-  "spiritual-wear": ["spiritual-wear", "clothing-religious-wear", "bhagwan-vastra", "mukut-shringar", "rudraksha-collection", "mala"],
-  "clothing-religious-wear": ["clothing-religious-wear", "bhagwan-vastra", "mukut-shringar"],
-  "rudraksha-collection": ["rudraksha-collection", "mala"],
+  // Legacy aliases mapped cleanly to official catalogue categories
+  "idols-murtis": ["murti"],
+  "idols-shrines": ["murti", "mandir"],
+  "lamps-diyas": ["pooja-thali-accessories"],
+  "puja-brassware": ["brass-copper-items", "pooja-thali-accessories"],
+  "incense-fragrances": ["pooja-samagri", "home-fragrance"],
+  "samagri-kits": ["pooja-samagri", "pooja-kits"],
+  "temple-decor": ["temple-decoration"],
+  "spiritual-wear": ["clothing-religious-wear", "bhagwan-vastra"],
+  "decor-offerings": ["temple-decoration", "bhog-prasad"],
 };
 
 export function useProducts() {

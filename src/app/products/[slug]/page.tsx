@@ -16,6 +16,10 @@ export async function generateMetadata({
     product = ProductService.getProductBySlug(slug);
   }
 
+  if (!product || !product.name || product.name === "Untitled Product") {
+    product = ProductService.getProductBySlug(slug);
+  }
+
   if (!product) {
     return {
       title: "Product Not Found | Ramanayam",
@@ -57,6 +61,10 @@ export default async function ProductDetailPage({
   try {
     product = await ProductService.fetchProductBySlugFromApi(slug);
   } catch {
+    product = ProductService.getProductBySlug(slug);
+  }
+
+  if (!product || !product.name || product.name === "Untitled Product") {
     product = ProductService.getProductBySlug(slug);
   }
 

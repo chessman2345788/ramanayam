@@ -44,6 +44,19 @@ export const connectDatabase = async (): Promise<void> => {
   try {
     await prisma.$connect();
     logger.info("Database connection established successfully.");
+
+    // Ensure newly added columns exist in the database (self-healing for deployment)
+    try {
+      await prisma.$executeRawUnsafe(`
+        ALTER TABLE "product_variants" ADD COLUMN IF NOT EXISTS "attributes" JSONB DEFAULT '{}';
+        ALTER TABLE "product_variants" ADD COLUMN IF NOT EXISTS "needs_pricing" BOOLEAN NOT NULL DEFAULT false;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "name_hi" TEXT;
+        ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "variant_type" TEXT;
+      `);
+      logger.info("Database schema synchronized (variant_type, attributes, name_hi, needs_pricing).");
+    } catch (migErr) {
+      logger.warn("Schema self-healing notice:", migErr);
+    }
   } catch (error) {
     logger.error("Failed to connect to the database:", error);
     process.exit(1);

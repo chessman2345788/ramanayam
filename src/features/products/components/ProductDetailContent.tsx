@@ -44,9 +44,9 @@ export function ProductDetailContent({ product }: { product: Product }) {
     { name: "Suresh M.", date: "03 April 2026", rating: 4, comment: "Very authentic and carefully packed. Will definitely order from Ramanayam again." },
   ];
 
-  const baseImage = (product.image && !product.image.includes('photo-1593508512255'))
+  const baseImage = (product.image && !product.image.includes('photo-1593508512255') && !product.image.includes('photo-1605647540924-852290f6b0d5'))
     ? product.image
-    : 'https://images.unsplash.com/photo-1605647540924-852290f6b0d5?w=800&auto=format&fit=crop&q=80';
+    : 'https://images.unsplash.com/photo-1609137144822-42173f4b66df?w=800&auto=format&fit=crop&q=80';
 
   const galleryImages = Array.isArray(product.images) && product.images.length > 0
     ? (product.images as any[]).map((img: any, i: number) => ({
