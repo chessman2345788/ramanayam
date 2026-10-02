@@ -10,6 +10,7 @@ const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export const createProductSchema = z.object({
   body: z.object({
     name: z.string().min(1, "Product name is required").max(200, "Product name is too long"),
+    nameHi: z.string().max(200).optional().nullable(),
     slug: z
       .string()
       .min(1, "Slug is required")
@@ -20,6 +21,7 @@ export const createProductSchema = z.object({
     description: z.string().optional().nullable(),
     categoryId: z.string().uuid("Invalid category ID format"),
     vendorId: z.string().uuid("Invalid vendor ID format"),
+    variantType: z.string().max(50).optional().nullable(),
     status: z.nativeEnum(ProductStatus).optional().default(ProductStatus.DRAFT),
     featured: z.boolean().optional().default(false),
     publishedAt: z.string().datetime().optional().nullable(),
@@ -34,6 +36,7 @@ export const updateProductSchema = z.object({
   }),
   body: z.object({
     name: z.string().min(1, "Product name cannot be empty").max(200).optional(),
+    nameHi: z.string().max(200).optional().nullable(),
     slug: z
       .string()
       .min(1, "Slug cannot be empty")
@@ -44,6 +47,7 @@ export const updateProductSchema = z.object({
     description: z.string().optional().nullable(),
     categoryId: z.string().uuid("Invalid category ID format").optional(),
     vendorId: z.string().uuid("Invalid vendor ID format").optional(),
+    variantType: z.string().max(50).optional().nullable(),
     status: z.nativeEnum(ProductStatus).optional(),
     featured: z.boolean().optional(),
     publishedAt: z.string().datetime().optional().nullable(),
@@ -123,6 +127,7 @@ export const createVariantSchema = z.object({
     sku: z.string().min(1, "SKU is required").max(100, "SKU is too long"),
     barcode: z.string().max(100).optional().nullable(),
     variantName: z.string().min(1, "Variant name is required").max(150, "Variant name is too long"),
+    attributes: z.record(z.any()).optional().nullable(),
     price: z.number().positive("Price must be a positive number"),
     compareAtPrice: z.number().min(0, "Compare at price cannot be negative").optional().nullable(),
     costPrice: z.number().min(0, "Cost price cannot be negative").optional().nullable(),
@@ -132,6 +137,7 @@ export const createVariantSchema = z.object({
     height: z.number().min(0, "Height cannot be negative").optional().nullable(),
     isDefault: z.boolean().optional().default(false),
     isActive: z.boolean().optional().default(true),
+    needsPricing: z.boolean().optional().default(false),
     stock: z.number().int().min(0, "Stock cannot be negative").optional().default(0),
   }),
 });
@@ -144,6 +150,7 @@ export const updateVariantSchema = z.object({
     sku: z.string().min(1).max(100).optional(),
     barcode: z.string().max(100).optional().nullable(),
     variantName: z.string().min(1).max(150).optional(),
+    attributes: z.record(z.any()).optional().nullable(),
     price: z.number().positive().optional(),
     compareAtPrice: z.number().min(0).optional().nullable(),
     costPrice: z.number().min(0).optional().nullable(),
@@ -153,6 +160,7 @@ export const updateVariantSchema = z.object({
     height: z.number().min(0).optional().nullable(),
     isDefault: z.boolean().optional(),
     isActive: z.boolean().optional(),
+    needsPricing: z.boolean().optional(),
     stock: z.number().int().min(0).optional(),
   }),
 });

@@ -104,9 +104,15 @@ export const mapBackendProductToFrontend = (p: any): Product => {
     ? p.variants.map((v: any) => ({
         id: v.id,
         name: v.variantName || v.name || "Default",
+        variantName: v.variantName || v.name || "Default",
         sku: v.sku || primarySku,
+        attributes: v.attributes || {},
         price: Number(v.price || 0),
-        stock: Number(v.stock || 0),
+        compareAtPrice: v.compareAtPrice ? Number(v.compareAtPrice) : undefined,
+        stock: v.inventory?.availableStock !== undefined ? Number(v.inventory.availableStock) : Number(v.stock || 0),
+        isDefault: Boolean(v.isDefault),
+        isActive: v.isActive !== false,
+        needsPricing: Boolean(v.needsPricing),
       }))
     : [];
 
@@ -129,6 +135,7 @@ export const mapBackendProductToFrontend = (p: any): Product => {
     brand: p.brand || "Ramanayam Heritage",
     vendor: vendorName,
     vendorId: p.vendorId || p.vendor?.id,
+    variantType: p.variantType || "single",
     price: primaryPrice,
     mrp: primaryMrp,
     image: primaryImageUrl,

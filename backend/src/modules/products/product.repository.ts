@@ -13,11 +13,13 @@ export interface ProductFilters {
 
 export interface CreateProductDTO {
   name: string;
+  nameHi?: string | null;
   slug: string;
   shortDescription?: string | null;
   description?: string | null;
   categoryId: string;
   vendorId: string;
+  variantType?: string | null;
   status?: ProductStatus;
   featured?: boolean;
   publishedAt?: Date | string | null;
@@ -27,11 +29,13 @@ export interface CreateProductDTO {
 
 export interface UpdateProductDTO {
   name?: string;
+  nameHi?: string | null;
   slug?: string;
   shortDescription?: string | null;
   description?: string | null;
   categoryId?: string;
   vendorId?: string;
+  variantType?: string | null;
   status?: ProductStatus;
   featured?: boolean;
   publishedAt?: Date | string | null;
@@ -43,6 +47,7 @@ export interface CreateVariantDTO {
   sku: string;
   barcode?: string | null;
   variantName: string;
+  attributes?: Record<string, any>;
   price: number;
   compareAtPrice?: number | null;
   costPrice?: number | null;
@@ -52,6 +57,7 @@ export interface CreateVariantDTO {
   height?: number | null;
   isDefault?: boolean;
   isActive?: boolean;
+  needsPricing?: boolean;
   stock?: number;
 }
 
@@ -59,6 +65,7 @@ export interface UpdateVariantDTO {
   sku?: string;
   barcode?: string | null;
   variantName?: string;
+  attributes?: Record<string, any>;
   price?: number;
   compareAtPrice?: number | null;
   costPrice?: number | null;
@@ -68,6 +75,7 @@ export interface UpdateVariantDTO {
   height?: number | null;
   isDefault?: boolean;
   isActive?: boolean;
+  needsPricing?: boolean;
   stock?: number;
 }
 
@@ -117,11 +125,13 @@ export class ProductRepository {
     return this.prisma.product.create({
       data: {
         name: data.name,
+        nameHi: data.nameHi,
         slug: data.slug,
         shortDescription: data.shortDescription,
         description: data.description,
         categoryId: data.categoryId,
         vendorId: data.vendorId,
+        variantType: data.variantType,
         status: data.status,
         featured: data.featured,
         publishedAt: data.publishedAt ? new Date(data.publishedAt) : null,
@@ -141,9 +151,11 @@ export class ProductRepository {
     const updateData: Prisma.ProductUpdateInput = {};
 
     if (data.name !== undefined) updateData.name = data.name;
+    if (data.nameHi !== undefined) updateData.nameHi = data.nameHi;
     if (data.slug !== undefined) updateData.slug = data.slug;
     if (data.shortDescription !== undefined) updateData.shortDescription = data.shortDescription;
     if (data.description !== undefined) updateData.description = data.description;
+    if (data.variantType !== undefined) updateData.variantType = data.variantType;
     if (data.status !== undefined) updateData.status = data.status;
     if (data.featured !== undefined) updateData.featured = data.featured;
     if (data.publishedAt !== undefined) updateData.publishedAt = data.publishedAt ? new Date(data.publishedAt) : null;
@@ -257,9 +269,12 @@ export class ProductRepository {
     if (filters.search) {
       where.OR = [
         { name: { contains: filters.search, mode: "insensitive" } },
+        { nameHi: { contains: filters.search, mode: "insensitive" } },
         { description: { contains: filters.search, mode: "insensitive" } },
         { shortDescription: { contains: filters.search, mode: "insensitive" } },
         { slug: { contains: filters.search, mode: "insensitive" } },
+        { variants: { some: { variantName: { contains: filters.search, mode: "insensitive" } } } },
+        { variants: { some: { sku: { contains: filters.search, mode: "insensitive" } } } },
       ];
     }
 

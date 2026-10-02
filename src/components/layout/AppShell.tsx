@@ -10,9 +10,13 @@ import { AnimatePresence } from "framer-motion";
 import { SplashScreen } from "@/components/layout/SplashScreen";
 import { useState, useEffect } from "react";
 
+import { PREVIEW_INDICATOR_COOKIE } from "@/lib/preview";
+import { PreviewBadge } from "@/components/preview/PreviewBadge";
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [showSplash, setShowSplash] = useState(false);
+  const [isPreviewActive, setIsPreviewActive] = useState(false);
 
   useEffect(() => {
     try {
@@ -24,6 +28,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  useEffect(() => {
+    try {
+      if (typeof document !== "undefined" && document.cookie.includes(`${PREVIEW_INDICATOR_COOKIE}=true`)) {
+        setIsPreviewActive(true);
+      }
+    } catch {
+      setIsPreviewActive(false);
+    }
+  }, [pathname]);
+
   const handleSplashComplete = () => {
     setShowSplash(false);
     try {
@@ -34,8 +48,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const isAdmin = pathname.startsWith("/admin");
   const isLaunchMode = process.env.NEXT_PUBLIC_LAUNCH_MODE === "true";
 
-  // Bypass full shell for admin pages and the launch page
-  if (isAdmin || (isLaunchMode && pathname === "/")) {
+  // Bypass full shell for admin pages and the unauthenticated public launch page
+  if (isAdmin || (isLaunchMode && pathname === "/" && !isPreviewActive)) {
     return (
       <main id="main-content" style={{ minHeight: "100vh" }}>
         {children}
@@ -76,6 +90,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
       <CartDrawer />
       <Footer />
+      <PreviewBadge />
     </div>
   );
 }

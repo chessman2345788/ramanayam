@@ -148,13 +148,21 @@ export function CartDrawer() {
                         }}>{item.category}</p>
                         <p style={{
                           fontSize: 14, fontWeight: 500, color: '#1A0F0A',
-                          marginBottom: 10, marginTop: 0,
+                          marginBottom: 4, marginTop: 0,
                           lineHeight: 1.35,
                           overflow: 'hidden',
                           display: '-webkit-box',
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: 'vertical' as const,
                         }}>{item.name}</p>
+                        {item.variantName && item.variantName !== "Standard" && (
+                          <p style={{
+                            fontSize: 12, fontWeight: 600, color: '#E8660A',
+                            margin: '0 0 8px',
+                          }}>
+                            {item.variantName}
+                          </p>
+                        )}
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                           {/* Qty stepper */}

@@ -87,6 +87,22 @@ export function CartItemBlock({
             <p className="text-eyebrow" style={{ fontSize: 9, margin: 0 }}>
               {item.category}
             </p>
+            {item.variantName && item.variantName !== "Standard" && (
+              <span
+                style={{
+                  display: "inline-block",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "#E8660A",
+                  background: "rgba(232, 102, 10, 0.08)",
+                  padding: "2px 8px",
+                  borderRadius: 100,
+                  marginTop: 4,
+                }}
+              >
+                {item.variantName}
+              </span>
+            )}
           </div>
 
           <button

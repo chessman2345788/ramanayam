@@ -114,11 +114,13 @@ model Vendor {
 model Product {
   id               String              @id @default(uuid()) @db.Uuid
   name             String
+  nameHi           String?             @map("name_hi")
   slug             String              @unique
   shortDescription String?             @map("short_description")
   description      String?
   categoryId       String              @map("category_id") @db.Uuid
   vendorId         String              @map("vendor_id") @db.Uuid
+  variantType      String?             @map("variant_type")
   status           ProductStatus       @default(DRAFT)
   featured         Boolean             @default(false)
   publishedAt      DateTime?           @map("published_at")
@@ -146,6 +148,7 @@ model ProductVariant {
   sku            String      @unique
   barcode        String?     @unique
   variantName    String      @map("variant_name")
+  attributes     Json?       @default("{}")
   price          Decimal     @db.Decimal(10, 2)
   compareAtPrice Decimal?    @map("compare_at_price") @db.Decimal(10, 2)
   costPrice      Decimal?    @map("cost_price") @db.Decimal(10, 2)
@@ -155,6 +158,7 @@ model ProductVariant {
   height         Decimal?    @db.Decimal(10, 2)
   isDefault      Boolean     @default(false) @map("is_default")
   isActive       Boolean     @default(true) @map("is_active")
+  needsPricing   Boolean     @default(false) @map("needs_pricing")
   createdAt      DateTime    @default(now()) @map("created_at")
   updatedAt      DateTime    @updatedAt @map("updated_at")
   inventory      Inventory?

@@ -108,6 +108,20 @@ export function GeneralCard({ formData, onChange }: GeneralCardProps) {
         />
       </div>
 
+      {/* Hindi Name */}
+      <div>
+        <label className="block text-xs font-semibold text-[#171717] mb-1">
+          Hindi Title / Name (हिंदी नाम)
+        </label>
+        <input
+          type="text"
+          value={formData.nameHi || ""}
+          onChange={(e) => onChange("nameHi", e.target.value)}
+          placeholder="e.g. पीतल दीया लैम्प"
+          className="w-full h-10 px-3 text-xs bg-[#FAF8F3] border border-black/10 rounded-xl text-[#171717] focus:outline-none focus:bg-white focus:border-[#F57C00]"
+        />
+      </div>
+
       {/* Slug with Auto-generate button */}
       <div>
         <div className="flex items-center justify-between mb-1">
@@ -208,6 +222,25 @@ export function GeneralCard({ formData, onChange }: GeneralCardProps) {
             )}
           </select>
         </div>
+      </div>
+
+      {/* Variant Type */}
+      <div>
+        <label className="block text-xs font-semibold text-[#171717] mb-1">
+          Variant Dimension / Type
+        </label>
+        <select
+          value={formData.variantType || "single"}
+          onChange={(e) => onChange("variantType", e.target.value)}
+          className="w-full h-10 px-3 text-xs bg-[#FAF8F3] border border-black/10 rounded-xl text-[#171717] focus:outline-none focus:border-[#F57C00]"
+        >
+          <option value="single">Single Item (Standard / No Variants)</option>
+          <option value="weight">Weight (grams / kg / ml)</option>
+          <option value="size">Size (inches / feet / dimensions)</option>
+          <option value="quantity">Quantity (Sticks / Pieces)</option>
+          <option value="pack">Pack / Combo Set</option>
+          <option value="material_size">Material & Size</option>
+        </select>
       </div>
     </div>
   );

@@ -3,13 +3,19 @@ export type ProductStatus = "Active" | "Draft" | "Archived" | "Out of Stock" | "
 export interface ProductVariant {
   id: string;
   name: string;
+  variantName?: string;
   sku: string;
+  attributes?: Record<string, any>;
   size?: string;
   color?: string;
   material?: string;
   weight?: string;
   price: number;
+  compareAtPrice?: number;
   stock: number;
+  isDefault?: boolean;
+  isActive?: boolean;
+  needsPricing?: boolean;
 }
 
 export interface ProductImage {
@@ -36,6 +42,7 @@ export interface Product {
   brand: string;
   vendor: string;
   vendorId?: string;
+  variantType?: string;
   price: number;
   mrp: number;
   image?: string;

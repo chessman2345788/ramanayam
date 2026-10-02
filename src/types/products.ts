@@ -1,3 +1,16 @@
+export interface ProductVariant {
+  id: string;
+  sku: string;
+  variantName: string;
+  attributes: Record<string, string>;
+  price: number;
+  compareAtPrice?: number;
+  stock: number;
+  isDefault: boolean;
+  isActive: boolean;
+  needsPricing: boolean;
+}
+
 export interface Product {
   id: string;
   slug: string;
@@ -7,9 +20,10 @@ export interface Product {
   price: number;
   mrp: number;
   image: string;
-  images: string[];
+  images: string[] | Array<{ id: string; url: string; altText?: string; isPrimary?: boolean }>;
   category: string;
   categorySlug: string;
+  variantType?: string;
   tags: string[];
   badges: string[];
   rating: number;
@@ -20,6 +34,7 @@ export interface Product {
   weight?: string;
   pujaGuide?: string;
   ingredients?: string[];
+  variants?: ProductVariant[];
 }
 
 export interface Category {
@@ -57,6 +72,10 @@ export interface Review {
 
 export interface CartItem {
   product: Product;
+  variantId: string;
+  variantName: string;
+  sku: string;
+  price: number;
   quantity: number;
 }
 

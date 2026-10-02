@@ -38,10 +38,18 @@ export async function GET(
 
     const data = await backendRes.json();
 
+    const isPreview =
+      request.cookies.has("__ramanayam_preview_session") ||
+      request.headers.get("x-ramanayam-preview") === "true";
+
+    const cacheHeader = isPreview
+      ? "no-store, no-cache, must-revalidate"
+      : "public, s-maxage=60, stale-while-revalidate=120";
+
     return Response.json(data, {
       status: backendRes.status,
       headers: {
-        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
+        "Cache-Control": cacheHeader,
       },
     });
   } catch (error: any) {

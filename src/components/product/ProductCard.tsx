@@ -22,15 +22,38 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
   const { toggleItem, isInWishlist } = useWishlistStore();
   const wished = isInWishlist(product.id);
 
+  const hasVariants = Boolean(
+    (product.variants && product.variants.length > 1) ||
+    (product.variantType && product.variantType !== "single")
+  );
+
+  const defaultVariant =
+    product.variants?.find((v) => v.isDefault) || product.variants?.[0];
+
+  const minPrice =
+    product.variants && product.variants.length > 0
+      ? Math.min(...product.variants.map((v) => v.price))
+      : product.price;
+
+  const displayPrice = minPrice;
+  const displayMrp = defaultVariant?.compareAtPrice ?? product.mrp;
+
   const discountPercent =
-    product.mrp > product.price
-      ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
+    displayMrp > displayPrice
+      ? Math.round(((displayMrp - displayPrice) / displayMrp) * 100)
       : 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem(product as unknown as Record<string, unknown>);
+    addItem({
+      ...product,
+      variantId: defaultVariant?.id || product.id,
+      variantName: defaultVariant?.variantName || "Standard",
+      sku: defaultVariant?.sku || "",
+      price: defaultVariant?.price ?? product.price,
+      mrp: defaultVariant?.compareAtPrice ?? product.mrp,
+    });
   };
 
   return (
@@ -228,7 +251,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
                   fontSize: 20,
                   fontWeight: 600,
                   color: "#1A0F0A",
-                  margin: "0 0 6px",
+                  margin: "0 0 4px",
                   lineHeight: 1.25,
                   display: "-webkit-box",
                   WebkitLineClamp: 2,
@@ -238,6 +261,18 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
               >
                 {product.name}
               </h3>
+              {product.nameHi && (
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "#A8822A",
+                    margin: "0 0 6px",
+                    fontWeight: 500,
+                  }}
+                >
+                  {product.nameHi}
+                </p>
+              )}
             </Link>
           </div>
 
@@ -251,22 +286,38 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
               borderTop: "1px solid rgba(26,15,10,0.06)",
             }}
           >
-            <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-              <span style={{ fontSize: 18, fontWeight: 700, color: "#1A0F0A" }}>
-                ₹{product.price.toLocaleString("en-IN")}
-              </span>
-              {product.mrp > product.price && (
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {hasVariants && (
                 <span
                   style={{
-                    fontSize: 12,
-                    color: "rgba(26,15,10,0.4)",
-                    textDecoration: "line-through",
-                    fontFamily: "monospace",
+                    fontSize: 10,
+                    color: "rgba(26,15,10,0.5)",
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    marginBottom: 2,
                   }}
                 >
-                  ₹{product.mrp.toLocaleString("en-IN")}
+                  Starting from
                 </span>
               )}
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                <span style={{ fontSize: 18, fontWeight: 700, color: "#1A0F0A" }}>
+                  ₹{displayPrice.toLocaleString("en-IN")}
+                </span>
+                {displayMrp > displayPrice && (
+                  <span
+                    style={{
+                      fontSize: 12,
+                      color: "rgba(26,15,10,0.4)",
+                      textDecoration: "line-through",
+                      fontFamily: "monospace",
+                    }}
+                  >
+                    ₹{displayMrp.toLocaleString("en-IN")}
+                  </span>
+                )}
+              </div>
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>

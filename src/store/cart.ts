@@ -4,13 +4,16 @@ import { CartService } from "@/services/cart.service";
 import { getAccessToken } from "@/lib/api";
 
 export interface CartItem {
-  id: string;
-  name: string;
-  subtitle: string;
+  id: string;           // variantId (unique key in cart)
+  productId: string;    // product ID for linking
+  name: string;         // product name
+  variantName: string;  // e.g. "100g", "Size 3", "Brass + 5 inch"
+  sku: string;          // e.g. "RAM-PS-KPR-STD"
   category: string;
-  price: number;
+  price: number;        // variant price
   mrp: number;
   image: string;
+  slug: string;         // product slug for linking
   qty: number;
 }
 
@@ -21,27 +24,34 @@ interface CartStore {
   openDrawer: () => void;
   closeDrawer: () => void;
 
-  // Accepts a Product-like object (with any extra fields ignored) or flat CartItem fields
+  // Accepts variant-aware payload
   addItem: (item: Record<string, unknown>, quantity?: number) => void;
   removeItem: (id: string) => void;
   updateQty: (id: string, qty: number) => void;
   clearCart: () => void;
   total: () => number;
 
-  // Computed convenience (kept for backward compat with useCart hook & checkout)
+  // Computed convenience
   itemCount: number;
 }
 
-// Helper: extract flat CartItem fields from a Product or flat object
+// Helper: extract CartItem fields from a Product + variant selection
 function toCartFields(obj: Record<string, unknown>): Omit<CartItem, "qty"> {
+  // If a variantId is passed, use it as the cart item ID
+  const variantId = String(obj.variantId ?? obj.id ?? "");
+  const productId = String(obj.productId ?? obj.id ?? "");
+
   return {
-    id: String(obj.id ?? ""),
+    id: variantId,
+    productId,
     name: String(obj.name ?? ""),
-    subtitle: String(obj.subtitle ?? ""),
+    variantName: String(obj.variantName ?? obj.subtitle ?? "Standard"),
+    sku: String(obj.sku ?? ""),
     category: String(obj.category ?? ""),
     price: Number(obj.price ?? 0),
-    mrp: Number(obj.mrp ?? 0),
+    mrp: Number(obj.mrp ?? obj.price ?? 0),
     image: String(obj.image ?? ""),
+    slug: String(obj.slug ?? ""),
   };
 }
 
@@ -113,7 +123,7 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: "ramanayam-cart",
-      version: 2,
+      version: 3, // bump version for migration
       partialize: (s) => ({ items: s.items }),
       // Ensure persisted scalars never overwrite store functions
       merge: (persisted, current) => {

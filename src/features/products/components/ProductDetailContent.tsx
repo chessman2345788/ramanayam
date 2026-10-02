@@ -13,6 +13,11 @@ import type { Product } from "@/types/products";
 
 export function ProductDetailContent({ product }: { product: Product }) {
   const {
+    selectedVariant,
+    setSelectedVariant,
+    currentPrice,
+    currentMrp,
+    inStock,
     quantity,
     imgError,
     activeImageIndex,
@@ -87,6 +92,11 @@ export function ProductDetailContent({ product }: { product: Product }) {
           <ScrollReveal variant="fade-up" delay={0.2}>
             <ProductInfo
               product={product}
+              selectedVariant={selectedVariant}
+              setSelectedVariant={setSelectedVariant}
+              currentPrice={currentPrice}
+              currentMrp={currentMrp}
+              inStock={inStock}
               quantity={quantity}
               incrementQuantity={incrementQuantity}
               decrementQuantity={decrementQuantity}
