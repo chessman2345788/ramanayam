@@ -13,7 +13,7 @@ const startServer = async () => {
     const productCount = await prisma.product.count();
     if (productCount < 20) {
       logger.info(`Database has only ${productCount} products. Seeding official Ramanayam catalogue...`);
-      const { seedCatalogue } = await import("../prisma/seeds/catalogue.seed");
+      const { seedCatalogue } = await import("./seeds/catalogue.seed");
       await seedCatalogue();
     }
   } catch (seedErr) {
